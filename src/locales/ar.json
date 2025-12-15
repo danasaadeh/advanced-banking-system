@@ -1,0 +1,98 @@
+{
+  "login": "تسجيل الدخول",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "rememberMe": "تذكرني",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "welcomeBack": "مرحباً بعودتك",
+  "loginSubtitle": "أدخل بيانات الاعتماد للوصول إلى لوحة الإدارة",
+  "bank": "البنك",
+  "bankingSystem": "نظام البنك ",
+
+  "dashboard": "لوحة التحكم",
+  "overview": "نظرة عامة",
+  "allComplaints": "جميع الشكاوى",
+  "pending": "قيد الانتظار",
+  "inProgress": "قيد المعالجة",
+  "resolved": "محلولة",
+  "statistics": "الإحصائيات",
+
+  "settings": "الإعدادات",
+
+  "activityLog": "سجل النشاط",
+  "logName": "اسم السجل",
+  "event": "الحدث",
+  "subject": "الموضوع",
+  "causer": "الفاعل",
+  "date": "التاريخ",
+  "noActivityLogs": "لا يوجد سجلات نشاط",
+
+  "exportAll": "تصدير الكل",
+  "exportFiltered": "تصدير المفلتر",
+
+  "filters": "عوامل التصفية",
+  "eventType": "نوع الحدث",
+  "subjectType": "نوع العنصر",
+  "logNameFilter": "اسم السجل",
+  "causerFilter": "المستخدم",
+  "dateFrom": "من تاريخ",
+  "dateTo": "إلى تاريخ",
+
+  "showingLogs": "عرض",
+  "toLogs": "إلى",
+  "ofLogs": "من",
+  "logs": "السجلات",
+  "noLogsFound": "لا يوجد سجلات.",
+
+  "logout": "تسجيل الخروج",
+  "profile": "الملف الشخصي",
+
+  "theme": "المظهر",
+  "language": "اللغة",
+  "lightMode": "الوضع الفاتح",
+  "darkMode": "الوضع الداكن",
+
+  "usersManagement": "إدارة المستخدمين",
+  "users": "المستخدمون",
+  "deletedAccounts": "الحسابات المحذوفة",
+  "addUser": "إضافة مستخدم",
+  "searchUsers": "بحث عن المستخدمين",
+  "filterByUnit": "تصفية حسب الوحدة",
+  "allUnits": "جميع الوحدات",
+  "unit": "وحدة",
+
+  "userName": "اسم المستخدم",
+  "emailColumn": "البريد الإلكتروني",
+  "phone": "رقم الهاتف",
+  "nationalNumber": "الرقم الوطني",
+  "actions": "الإجراءات",
+
+  "previous": "السابق",
+  "next": "التالي",
+
+  "showing": "عرض",
+  "to": "إلى",
+  "of": "من",
+  "usersLower": "المستخدمين",
+
+  "noUsersFound": "لم يتم العثور على مستخدمين",
+
+  "areYouSure": "هل أنت متأكد؟",
+  "softDeleteWarning": "سيتم تعطيل المستخدم. يمكنك استعادته لاحقاً.",
+  "permanentDeleteWarning": "سيتم حذف المستخدم (المدير) نهائيًا ولا يمكن التراجع عن هذا الإجراء.",
+  "delete": "حذف",
+  "deletePermanently": "حذف نهائي",
+  "cancel": "إلغاء",
+
+  "statisticsDescription": "نظرة عامة على إحصائيات الشكاوى والاتجاهات",
+  "totalComplaints": "إجمالي الشكاوى",
+  "pendingComplaints": "الشكاوى قيد الانتظار",
+  "resolvedComplaints": "الشكاوى المحلولة",
+  "newComplaints": "الشكاوى الجديدة",
+  "monthlyComplaintsFlow": "التدفق الشهري للشكاوى",
+  "complaintsByUnit": "التوزيع حسب الجهة الحكومية",
+  "complaintsCount": "الشكاوى",
+  "loadingStatistics": "جاري تحميل الإحصائيات...",
+  "failedToLoadStatistics": "فشل تحميل الإحصائيات. يرجى المحاولة مرة أخرى.",
+  "error": "خطأ"
+}

@@ -1,0 +1,99 @@
+{
+  "login": "Login",
+  "email": "Email",
+  "password": "Password",
+  "rememberMe": "Remember me",
+  "forgotPassword": "Forgot password?",
+  "welcomeBack": "Welcome Back",
+  "loginSubtitle": "Enter your credentials to access the admin dashboard",
+  "bank": "Bank",
+  "bankingSystem": "Advanced Banking System",
+
+  "dashboard": "Dashboard",
+  "overview": "Overview",
+  "allComplaints": "All Complaints",
+  "pending": "Pending",
+  "inProgress": "In Progress",
+  "resolved": "Resolved",
+  "statistics": "Statistics",
+
+  "settings": "Settings",
+
+  "activityLog": "Activity Log",
+  "logName": "Log Name",
+  "event": "Event",
+  "subject": "Subject",
+  "causer": "Causer",
+  "date": "Date",
+  "noActivityLogs": "No activity logs found",
+
+  "exportAll": "Export All",
+  "exportFiltered": "Export Filtered",
+
+  "filters": "Filters",
+  "eventType": "Event Type",
+  "subjectType": "Subject Type",
+  "logNameFilter": "Log Name",
+  "causerFilter": "Causer",
+  "dateFrom": "Date From",
+  "dateTo": "Date To",
+
+  "showingLogs": "Showing",
+  "toLogs": "to",
+  "ofLogs": "of",
+  "logs": "logs",
+  "noLogsFound": "No logs found.",
+
+  "logout": "Logout",
+  "profile": "Profile",
+
+  "theme": "Theme",
+  "language": "Language",
+  "lightMode": "Light Mode",
+  "darkMode": "Dark Mode",
+
+  "usersManagement": "Users Management",
+  "users": "Users",
+  "deletedAccounts": "Deleted Accounts",
+  "addUser": "Add User",
+
+  "searchUsers": "Search Users",
+  "filterByUnit": "Filter By Unit",
+  "allUnits": "All Units",
+  "unit": "Unit",
+
+  "userName": "User Name",
+  "emailColumn": "Email",
+  "phone": "Phone",
+  "nationalNumber": "National Number",
+  "actions": "Actions",
+
+  "previous": "Previous",
+  "next": "Next",
+
+  "showing": "Showing",
+  "to": "to",
+  "of": "of",
+  "usersLower": "users",
+
+  "noUsersFound": "No users found",
+
+  "areYouSure": "Are you sure?",
+  "softDeleteWarning": "This action will deactivate the user. You can restore the user later.",
+  "permanentDeleteWarning": "This action will permanently delete the admin user and cannot be undone.",
+  "delete": "Delete",
+  "deletePermanently": "Delete Permanently",
+  "cancel": "Cancel",
+
+  "statisticsDescription": "Overview of complaint statistics and trends",
+  "totalComplaints": "Total Complaints",
+  "pendingComplaints": "Pending Complaints",
+  "resolvedComplaints": "Resolved Complaints",
+  "newComplaints": "New Complaints",
+  "monthlyComplaintsFlow": "Monthly Complaints Flow",
+  "complaintsByUnit": "Distribution by Government Unit",
+  "complaintsCount": "Complaints",
+  "loadingStatistics": "Loading statistics...",
+  "failedToLoadStatistics": "Failed to load statistics. Please try again.",
+  "error": "Error"
+}
