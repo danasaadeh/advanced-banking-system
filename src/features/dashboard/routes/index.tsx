@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type JSX } from "react";
 import DashboardLayout from "../components/dashboard-layout";
@@ -8,10 +9,10 @@ import RoleProtectedRoute from "@/shared/components/role-protected-route";
 
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
-const Transactions = lazy(() => import("../pages/transactions"));
-const Statistics = lazy(() => import("../pages/statistics"));
+const Transactions = lazy(() => import("../../Transactions/pages"));
+
 const Settings = lazy(() => import("../pages/settings"));
-const Accounts = lazy(() => import("../pages/accounts"));
+const Accounts = lazy(() => import("../../account-management/pages"));
 const CustomerService = lazy(() => import("../pages/customer-service"));
 
 const Load = (c: JSX.Element) => (
@@ -41,7 +42,7 @@ export const dashboardRoutes = [
       { index: true, element: Load(<StatisticsPage />) },
       { path: "transactions", element: Load(<Transactions />) },
       { path: "accounts", element: Load(<Accounts />) },
-      { path: "statistics", element: Load(<StatisticsPage />) },
+
 
       { path: "customer-service", element: Load(<CustomerService />) },
     ],

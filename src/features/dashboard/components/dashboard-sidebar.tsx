@@ -1,14 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
+  // LayoutDashboard,
   FileText,
-  Clock,
-  RefreshCw,
-  CheckCircle,
-  BarChart3,
-  Users,
-  Settings,
+  // Clock,
+  // RefreshCw,
+  // CheckCircle,
+  // BarChart3,
+  // Users,
+  // Settings,
 } from "lucide-react";
 import { NavLink } from "@/shared/components/nav-link";
 import {

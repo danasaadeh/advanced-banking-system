@@ -1,17 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isEmployee } from "@/features/auth/utlitlies/roles";
+
 import type { LucideIcon } from "lucide-react";
 
-import {
-  LayoutDashboard,
-  FileText,
-  BarChart3,
-  Users,
-  Settings,
-  Building,
-  LogIn,
-  History,
-} from "lucide-react";
+import { LayoutDashboard, FileText, Building, PhoneCall } from "lucide-react";
 
 export const dashboardMenu = (t: any) => [
   {
@@ -22,13 +14,18 @@ export const dashboardMenu = (t: any) => [
 
   {
     title: t("transactions"),
-    url: "/dashboard/transaction",
+    url: "/dashboard/transactions",
     icon: FileText,
   },
   {
     title: t("accounts"),
-    url: "/dashboard/government-units",
+    url: "/dashboard/accounts",
     icon: Building,
+  },
+  {
+    title: t("customer Service"),
+    url: "/dashboard/customer-service",
+    icon: PhoneCall,
   },
 ];
 
@@ -40,28 +37,29 @@ export interface MenuItem {
 
 export const dashboardSecondaryMenu = (t: any): MenuItem[] =>
   [
-    !isEmployee()
-      ? {
-          title: t("users"),
-          url: "/dashboard/users",
-          icon: Users,
-        }
-      : null,
-    {
-      title: t("customerService"),
-      url: "/dashboard/government-units",
-      icon: Building,
-    },
+    // !isEmployee()
+    //   ? {
+    //       title: t("users"),
+    //       url: "/dashboard/users",
+    //       icon: Users,
+    //     }
+    //   : null,
+    // {
+    //   title: t("customerService"),
+    //   url: "/dashboard/government-units",
+    //   icon: Building,
+    // },
 
-    {
-      title: t("statistics"),
-      url: "/dashboard/statistics",
-      icon: BarChart3,
-    },
+    // {
+    //   title: t("statistics"),
+    //   url: "/dashboard/statistics",
+    //   icon: BarChart3,
+    // },
 
-    {
-      title: t("reports"),
-      url: "/dashboard/government-units",
-      icon: Building,
-    },
-  ].filter((item): item is MenuItem => item !== null);
+    // {
+    //   title: t("reports"),
+    //   url: "/dashboard/government-units",
+    //   icon: Building,
+    // },
+  ]
+  // .filter((item): item is MenuItem => item !== null);

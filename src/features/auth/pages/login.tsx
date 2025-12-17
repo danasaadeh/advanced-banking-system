@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { LanguageToggle } from "@/shared/components/language-toggle";
 import bankLogo from "@/assets/Gemini_Generated_Image_uftp5guftp5guftp-removebg-preview.png";
@@ -34,8 +35,8 @@ const LoginPage = () => {
         )}
       >
         {/* BACKGROUND */}
-        <div className="absolute inset-0 bg-cover bg-center bg-foreground">
-          <div className="absolute inset-0 bg-[#012523]/40" />
+        <div className="absolute inset-0 bg-cover bg-center bg-black">
+          <div className="absolute inset-0 bg-blend-luminosity" />
         </div>
 
         {/* CONTENT */}
