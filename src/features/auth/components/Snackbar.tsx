@@ -122,7 +122,7 @@ const Snackbar: React.FC<Props> = ({
       role="alert"
       className={`fixed top-5 ${
         dir === "rtl" ? "left-5" : "right-5"
-      } max-w-sm w-full flex items-center rounded-xl shadow-xl p-4 transition-transform duration-300 transform z-[9999] ${
+      } max-w-sm w-full flex items-center rounded-xl shadow-xl p-4 transition-transform duration-300 transform z-9999 ${
         visible
           ? "translate-x-0 opacity-100 scale-100"
           : dir === "rtl"

@@ -3,7 +3,13 @@
 
 import type { LucideIcon } from "lucide-react";
 
-import { LayoutDashboard, FileText, Building, PhoneCall } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Building,
+  PhoneCall,
+  Users,
+} from "lucide-react";
 
 export const dashboardMenu = (t: any) => [
   {
@@ -16,6 +22,11 @@ export const dashboardMenu = (t: any) => [
     title: t("transactions"),
     url: "/dashboard/transactions",
     icon: FileText,
+  },
+  {
+    title: t("users"),
+    url: "/dashboard/users",
+    icon: Users,
   },
   {
     title: t("accounts"),
@@ -35,31 +46,28 @@ export interface MenuItem {
   icon: LucideIcon;
 }
 
-export const dashboardSecondaryMenu = (t: any): MenuItem[] =>
-  [
-    // !isEmployee()
-    //   ? {
-    //       title: t("users"),
-    //       url: "/dashboard/users",
-    //       icon: Users,
-    //     }
-    //   : null,
-    // {
-    //   title: t("customerService"),
-    //   url: "/dashboard/government-units",
-    //   icon: Building,
-    // },
-
-    // {
-    //   title: t("statistics"),
-    //   url: "/dashboard/statistics",
-    //   icon: BarChart3,
-    // },
-
-    // {
-    //   title: t("reports"),
-    //   url: "/dashboard/government-units",
-    //   icon: Building,
-    // },
-  ]
-  // .filter((item): item is MenuItem => item !== null);
+export const dashboardSecondaryMenu = (t: any): MenuItem[] => [
+  // !isEmployee()
+  //   ? {
+  //       title: t("users"),
+  //       url: "/dashboard/users",
+  //       icon: Users,
+  //     }
+  //   : null,
+  // {
+  //   title: t("customerService"),
+  //   url: "/dashboard/government-units",
+  //   icon: Building,
+  // },
+  // {
+  //   title: t("statistics"),
+  //   url: "/dashboard/statistics",
+  //   icon: BarChart3,
+  // },
+  // {
+  //   title: t("reports"),
+  //   url: "/dashboard/government-units",
+  //   icon: Building,
+  // },
+];
+// .filter((item): item is MenuItem => item !== null);
