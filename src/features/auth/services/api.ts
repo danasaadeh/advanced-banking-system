@@ -1,51 +1,55 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { httpClient } from "../../../lib/axios";
 import { rolesStorage, userStorage } from "../storage";
-import type { AuthPayload, AuthResponse } from "../types";
+import type { AuthPayload, AuthResponse, UserProfile } from "../types";
 
 interface LoginResult {
   token: string;
-  user: any;
+  user: UserProfile;
   message: string;
 }
 
 class AuthServices {
-  #endPoint = "/auth/";
+  #endPoint = "/";
 
   async login(payload: AuthPayload): Promise<LoginResult> {
     const response = await httpClient.post<AuthResponse>(
-      `${this.#endPoint}email-login`,
-      payload
+      `${this.#endPoint}login`,
+      payload,
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
     );
 
-    const data = response.data.data;
+    const { token, user, message } = response.data;
 
-    if (!data?.token) {
-      throw new Error(
-        response.data.message || "Invalid login response: missing token"
-      );
+    if (!token) {
+      throw new Error(message || "Invalid login response: missing token");
     }
 
-    // Save token
-    userStorage.set(data.token);
+    // ✅ Save token
+    userStorage.set(token);
 
-    // Save user roles from backend response
-    const roles = data.user?.roles || [];
-    rolesStorage.set(roles);
+    // ✅ Save roles
+    rolesStorage.set(user.roles);
+
+    // ✅ Normalize user for frontend
+    const normalizedUser: UserProfile = {
+      id: user.id,
+      fullName: `${user.first_name} ${user.last_name}`,
+      email: user.email,
+      roles: user.roles,
+      status: user.status,
+    };
 
     return {
-      token: data.token,
-      user: data.user,
-      message: response.data.message || "Login successful",
+      token,
+      user: normalizedUser,
+      message,
     };
   }
 }
 
 export default new AuthServices();
-
-// async getMe(): Promise<UserProfile> {
-//   const response = await httpClient.get<UserProfile>(
-//     `${this.#endPoint}/profile`
-//   );
-//   return response.data;
-// }
