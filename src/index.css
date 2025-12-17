@@ -37,14 +37,14 @@
     --radius: 0.75rem;
 
     /* SIDEBAR */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 0 0% 0%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 95%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 0 0% 0%;
+    --sidebar-background: 0 0% 4%; /* black */
+    --sidebar-foreground: 0 0% 100%; /* white */
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%; /* dark gray */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 0% 100%;
   }
 
   /* ---------------- DARK MODE ---------------- */
