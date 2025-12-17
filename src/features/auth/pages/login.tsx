@@ -1,9 +1,9 @@
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { LanguageToggle } from "@/shared/components/language-toggle";
-import bank from "@/assets/bank.png";
+import bankLogo from "@/assets/Gemini_Generated_Image_uftp5guftp5guftp-removebg-preview.png";
 import { LoginForm } from "../components/LoginForm";
 import { useTranslation } from "react-i18next";
-import clsx from "clsx"; // optional, for cleaner classNames
+import clsx from "clsx";
 
 const LoginPage = () => {
   const { t, i18n } = useTranslation();
@@ -28,28 +28,29 @@ const LoginPage = () => {
         className={clsx(
           "hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary",
           {
-            "rounded-l-[3rem]": !isRTL, // left rounded for LTR
-            "rounded-r-[3rem]": isRTL, // right rounded for RTL
+            "rounded-l-[3rem]": !isRTL,
+            "rounded-r-[3rem]": isRTL,
           }
         )}
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-foreground"
-          // style={{ backgroundImage: `url(${bank})` }}
-        >
+        {/* BACKGROUND */}
+        <div className="absolute inset-0 bg-cover bg-center bg-foreground">
           <div className="absolute inset-0 bg-[#012523]/40" />
         </div>
 
-        {/* TEXT CONTENT */}
+        {/* CONTENT */}
         <div className="relative z-10 flex flex-col items-center justify-end w-full p-12 pb-24">
           <div className="text-center space-y-4">
-            <h1 className="text-5xl font-bold text-background drop-shadow-2xl">
-              {t("bank")}
-            </h1>
-
-            <p className="text-xl text-background drop-shadow-lg">
-              {t("bankingSystem")}
-            </p>
+            <img
+              src={bankLogo}
+              alt="Bank logo"
+              className="
+                w-xl
+                max-w-full
+                h-auto
+                object-contain
+              "
+            />
           </div>
         </div>
       </div>
