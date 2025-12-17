@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { httpClient } from "../../../lib/axios";
 import { rolesStorage, userStorage } from "../storage";
-import type { AuthPayload, AuthResponse, UserProfile } from "../types";
+import type {
+  AuthPayload,
+  AuthResponse,
+  LogoutResponse,
+  MeResponse,
+  UserProfile,
+} from "../types";
 
 interface LoginResult {
   token: string;
@@ -48,6 +54,35 @@ class AuthServices {
       token,
       user: normalizedUser,
       message,
+    };
+  }
+
+  async logout(): Promise<{ message: string }> {
+    const response = await httpClient.delete<LogoutResponse>(
+      `${this.#endPoint}logout`
+    );
+
+    // Clear local auth data
+    userStorage.remove();
+    rolesStorage.remove();
+
+    return response.data;
+  }
+
+  // -----------------------
+  // GET PROFILE
+  // -----------------------
+  async getMe(): Promise<UserProfile> {
+    const response = await httpClient.get<MeResponse>(`${this.#endPoint}me`);
+
+    const { user } = response.data;
+
+    return {
+      id: user.id,
+      fullName: `${user.first_name} ${user.last_name}`,
+      email: user.email,
+      roles: user.roles,
+      status: user.status,
     };
   }
 }

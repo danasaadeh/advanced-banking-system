@@ -30,3 +30,24 @@ export type UserProfile = {
   roles: string[];
   status: string;
 };
+
+export interface LogoutResponse {
+  message: string;
+}
+
+export interface MeResponse {
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name?: string;
+    email: string;
+    phone: string;
+    national_id: string;
+    date_of_birth: string;
+    address: string;
+    status: "active" | "inactive";
+    roles: string[];
+    created_at: string;
+  };
+}

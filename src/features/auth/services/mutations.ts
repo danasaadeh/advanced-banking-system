@@ -8,3 +8,7 @@ export function useLoginMutation() {
     mutationFn: (payload: AuthPayload) => AuthServices.login(payload),
   });
 }
+export const useLogoutMutation = () =>
+  useMutation({
+    mutationFn: () => AuthServices.logout(),
+  });

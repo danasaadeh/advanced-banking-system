@@ -44,8 +44,9 @@ export const DashboardHeader = () => {
             </div>
           </DropdownMenuLabel>
 
-          <DropdownMenuSeparator />
-
+          <DropdownMenuItem>
+            <User className="h-4 w-4 mr-2" /> {t("profile")}
+          </DropdownMenuItem>
           <DropdownMenuItem>
             <Settings className="h-4 w-4 mr-2" /> {t("settings")}
           </DropdownMenuItem>

@@ -7,10 +7,11 @@ import ProtectedRoute from "@/shared/components/protected-route";
 import { StatisticsPage } from "@/features/statistics/pages";
 import RoleProtectedRoute from "@/shared/components/role-protected-route";
 import UsersListPage from "@/features/users/pages/UsersListPage";
+import OverviewPage from "../pages/dashboard";
 
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
-const Transactions = lazy(() => import("../../Transactions/pages"));
+const Transactions = lazy(() => import("../../transactions/pages"));
 
 const Settings = lazy(() => import("../pages/settings"));
 const Accounts = lazy(() => import("../../account-management/pages"));
@@ -40,11 +41,10 @@ export const dashboardRoutes = [
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: Load(<StatisticsPage />) },
+      { index: true, element: Load(<OverviewPage />) },
       { path: "transactions", element: Load(<Transactions />) },
       { path: "accounts", element: Load(<Accounts />) },
-    { path: "users", element: Load(<UsersListPage  />) },
-
+      { path: "users", element: Load(<UsersListPage />) },
 
       { path: "customer-service", element: Load(<CustomerService />) },
     ],
