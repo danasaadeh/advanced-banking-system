@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApiService } from "./user.api";
 import { toast } from "@/shared/components/ui/sonner";
+import type { CreateUserRequest, UpdateUserRequest } from "../types/user.types";
 
 export const useActivateUser = () => {
   const queryClient = useQueryClient();
@@ -45,15 +46,15 @@ export const useDeactivateUser = () => {
   });
 };
 
-export const useSuspendUser = () => {
+export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    { success: boolean; message: string },
+    { success: boolean; message: string; data: any },
     Error,
-    { userId: number }
+    CreateUserRequest
   >({
-    mutationFn: ({ userId }) => userApiService.suspendUser(userId),
+    mutationFn: (userData) => userApiService.createUser(userData),
 
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -61,7 +62,29 @@ export const useSuspendUser = () => {
     },
 
     onError: (error) => {
-      toast.error(error.message || "Failed to suspend user");
+      toast.error(error.message || "Failed to create user");
+    },
+  });
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { success: boolean; message: string; data: any },
+    Error,
+    { userId: number; userData: UpdateUserRequest }
+  >({
+    mutationFn: ({ userId, userData }) => userApiService.updateUser(userId, userData),
+
+    onSuccess: (response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user", variables.userId] });
+      toast.success(response.message);
+    },
+
+    onError: (error) => {
+      toast.error(error.message || "Failed to update user");
     },
   });
 };

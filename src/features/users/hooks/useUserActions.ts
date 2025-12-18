@@ -1,37 +1,45 @@
 // features/users/hooks/useUserActions.ts
 import { useState } from "react";
-import { useActivateUser, useDeactivateUser, useSuspendUser } from "../services/user.mutations";
+import { useActivateUser, useDeactivateUser, useCreateUser, useUpdateUser } from "../services/user.mutations";
+import type { User, UserFormData } from "../types/user.types";
 
 export const useUserActions = () => {
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [actionType, setActionType] = useState<"activate" | "deactivate" | "suspend" | "view" | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [actionType, setActionType] = useState<"activate" | "deactivate" | "view" | "edit" | "create" | null>(null);
   const [showDialog, setShowDialog] = useState(false);
 
   const activateUser = useActivateUser();
   const deactivateUser = useDeactivateUser();
-  const suspendUser = useSuspendUser();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
 
-  const handleViewDetails = (user: any) => {
+  const handleViewDetails = (user: User) => {
     setSelectedUser(user);
     setActionType("view");
     setShowDialog(true);
   };
 
-  const handleActivate = (user: any) => {
+  const handleActivate = (user: User) => {
     setSelectedUser(user);
     setActionType("activate");
     setShowDialog(true);
   };
 
-  const handleDeactivate = (user: any) => {
+  const handleDeactivate = (user: User) => {
     setSelectedUser(user);
     setActionType("deactivate");
     setShowDialog(true);
   };
 
-  const handleSuspend = (user: any) => {
+  const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    setActionType("suspend");
+    setActionType("edit");
+    setShowDialog(true);
+  };
+
+  const handleCreateUser = () => {
+    setSelectedUser(null);
+    setActionType("create");
     setShowDialog(true);
   };
 
@@ -45,11 +53,20 @@ export const useUserActions = () => {
       case "deactivate":
         deactivateUser.mutate({ userId: selectedUser.id });
         break;
-      case "suspend":
-        suspendUser.mutate({ userId: selectedUser.id });
-        break;
     }
 
+    setShowDialog(false);
+    setSelectedUser(null);
+    setActionType(null);
+  };
+
+  const handleSaveUser = (userData: UserFormData, userId?: number) => {
+    if (userId) {
+      updateUser.mutate({ userId, userData });
+    } else {
+      createUser.mutate(userData);
+    }
+    
     setShowDialog(false);
     setSelectedUser(null);
     setActionType(null);
@@ -61,25 +78,31 @@ export const useUserActions = () => {
         return "Activate";
       case "deactivate":
         return "Deactivate";
-      case "suspend":
-        return "Suspend";
+      case "edit":
+        return "Save Changes";
+      case "create":
+        return "Create User";
       default:
         return "";
     }
   };
 
   const getActionDescription = () => {
-    if (!selectedUser) return "";
+    if (!selectedUser && actionType !== "create") return "";
     
-    const userName = `${selectedUser.first_name} ${selectedUser.last_name}`;
+    if (actionType === "create") {
+      return "Fill in the details to create a new user account.";
+    }
+    
+    const userName = `${selectedUser?.first_name} ${selectedUser?.last_name}`;
     
     switch (actionType) {
       case "activate":
         return `Are you sure you want to activate ${userName}? This will allow them to access the system.`;
       case "deactivate":
         return `Are you sure you want to deactivate ${userName}? They will not be able to access the system.`;
-      case "suspend":
-        return `Are you sure you want to suspend ${userName}? This action is reversible.`;
+      case "edit":
+        return `You are editing ${userName}'s profile information.`;
       default:
         return "";
     }
@@ -93,10 +116,14 @@ export const useUserActions = () => {
     handleViewDetails,
     handleActivate,
     handleDeactivate,
-    handleSuspend,
+    handleEditUser,
+    handleCreateUser,
+    handleSaveUser,
     executeAction,
     getActionText,
     getActionDescription,
-    isLoading: activateUser.isLoading || deactivateUser.isLoading || suspendUser.isLoading,
+    isLoading: activateUser.isLoading || deactivateUser.isLoading || createUser.isLoading || updateUser.isLoading,
+    isCreating: createUser.isLoading,
+    isUpdating: updateUser.isLoading,
   };
 };

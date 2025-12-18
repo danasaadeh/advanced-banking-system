@@ -9,7 +9,7 @@ export interface User {
   national_id: string;
   date_of_birth: string;
   address: string;
-  status: "active" | "inactive" | "suspended";
+  status: "active" | "inactive";
   roles: string[];
   created_at: string;
   updated_at?: string;
@@ -41,11 +41,20 @@ export interface UserFormData {
   date_of_birth: string;
   address: string;
   roles: string[];
+  status?: "active" | "inactive";
 }
+
+export interface CreateUserRequest extends Omit<UserFormData, 'id'> {}
+export interface UpdateUserRequest extends Partial<UserFormData> {}
 
 export const ROLES_OPTIONS = [
   { value: "Admin", label: "Administrator" },
   { value: "Manager", label: "Manager" },
   { value: "Teller", label: "Teller" },
   { value: "Customer", label: "Customer" },
+];
+
+export const STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
 ];

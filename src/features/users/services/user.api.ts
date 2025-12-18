@@ -1,5 +1,5 @@
 // features/users/services/user.api.ts
-import type { User, UsersResponse } from "../types/user.types";
+import type { User, UsersResponse, CreateUserRequest, UpdateUserRequest } from "../types/user.types";
 
 class UserApiService {
   private mockUsers: User[] = [
@@ -69,7 +69,7 @@ class UserApiService {
       national_id: "7778889999",
       date_of_birth: "1988-11-30",
       address: "654 Maple Dr, Town",
-      status: "suspended",
+      status: "inactive",
       roles: ["Admin", "Manager"],
       created_at: "2025-12-13 16:45:18",
     },
@@ -117,11 +117,15 @@ class UserApiService {
     },
   ];
 
+  private generateId(): number {
+    return Math.max(...this.mockUsers.map(u => u.id)) + 1;
+  }
+
   async getUsers(
     search: string = "",
     role: string = "all",
     page: number = 1,
-    perPage: number = 5
+    perPage: number = 10
   ): Promise<UsersResponse> {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -174,6 +178,48 @@ class UserApiService {
     return user;
   }
 
+  async createUser(userData: CreateUserRequest): Promise<{ success: boolean; message: string; data: User }> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const newUser: User = {
+      id: this.generateId(),
+      ...userData,
+      middle_name: userData.middle_name || null,
+      status: userData.status || "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.mockUsers.unshift(newUser);
+
+    return {
+      success: true,
+      message: "User created successfully",
+      data: newUser,
+    };
+  }
+
+  async updateUser(userId: number, userData: UpdateUserRequest): Promise<{ success: boolean; message: string; data: User }> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const userIndex = this.mockUsers.findIndex((u) => u.id === userId);
+    if (userIndex === -1) throw new Error("User not found");
+
+    const updatedUser = {
+      ...this.mockUsers[userIndex],
+      ...userData,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.mockUsers[userIndex] = updatedUser;
+
+    return {
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    };
+  }
+
   async activateUser(userId: number): Promise<{ success: boolean; message: string }> {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -201,21 +247,6 @@ class UserApiService {
     return {
       success: true,
       message: "User deactivated successfully",
-    };
-  }
-
-  async suspendUser(userId: number): Promise<{ success: boolean; message: string }> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const user = this.mockUsers.find((u) => u.id === userId);
-    if (user) {
-      user.status = "suspended";
-      user.updated_at = new Date().toISOString();
-    }
-
-    return {
-      success: true,
-      message: "User suspended successfully",
     };
   }
 }

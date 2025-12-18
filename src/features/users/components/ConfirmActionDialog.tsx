@@ -22,7 +22,6 @@ interface ConfirmActionDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   isLoading?: boolean;
-  variant?: "default" | "destructive";
 }
 
 export const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({
@@ -34,7 +33,6 @@ export const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({
   cancelText = "Cancel",
   onConfirm,
   isLoading = false,
-  variant = "default",
 }) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +49,6 @@ export const ConfirmActionDialog: React.FC<ConfirmActionDialogProps> = ({
             <Button
               onClick={onConfirm}
               disabled={isLoading}
-              variant={variant === "destructive" ? "destructive" : "default"}
             >
               {isLoading ? (
                 <>

@@ -8,9 +8,9 @@ import { useUserActions } from "../hooks/useUserActions";
 import { useUsers } from "../services/user.queries";
 import { UsersTable } from "../components/UsersTable";
 import { UsersFilters } from "../components/UsersFilters";
-import { UsersPagination } from "../components/UsersPagination";
 import { UserDetailsDialog } from "../components/UserDetailsDialog";
 import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
+import { UserFormDialog } from "../components/UserFormDialog";
 
 const UsersListPage: React.FC = () => {
   const {
@@ -30,11 +30,15 @@ const UsersListPage: React.FC = () => {
     handleViewDetails,
     handleActivate,
     handleDeactivate,
-    handleSuspend,
+    handleEditUser,
+    handleCreateUser,
+    handleSaveUser,
     executeAction,
     getActionText,
     getActionDescription,
     isLoading,
+    isCreating,
+    isUpdating,
   } = useUserActions();
 
   const { data, isLoading: isLoadingUsers, isError } = useUsers({
@@ -47,6 +51,16 @@ const UsersListPage: React.FC = () => {
   const users = data?.data || [];
   const pagination = data?.pagination;
 
+  // دالة خاصة لمعالجة التعديل من ديالوج التفاصيل
+  const handleEditFromDetails = (user: any) => {
+    // إغلاق ديالوج التفاصيل أولاً
+    setShowDialog(false);
+    // ثم فتح ديالوج التعديل بعد تأخير بسيط
+    setTimeout(() => {
+      handleEditUser(user);
+    }, 100);
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
@@ -57,7 +71,7 @@ const UsersListPage: React.FC = () => {
             Manage all system users, their roles, and status
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={handleCreateUser}>
           <Plus className="h-4 w-4" />
           Add New User
         </Button>
@@ -82,7 +96,7 @@ const UsersListPage: React.FC = () => {
             />
           </div>
 
-          {/* Users Table */}
+          {/* Users Table with Pagination */}
           {isLoadingUsers ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -103,24 +117,17 @@ const UsersListPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            <>
-              <UsersTable
-                users={users}
-                onViewDetails={handleViewDetails}
-                onActivate={handleActivate}
-                onDeactivate={handleDeactivate}
-                onSuspend={handleSuspend}
-              />
-              {pagination && pagination.total > 10 && (
-                <UsersPagination
-                  currentPage={currentPage}
-                  totalPages={pagination.last_page}
-                  totalItems={pagination.total}
-                  itemsPerPage={10}
-                  onPageChange={setCurrentPage}
-                />
-              )}
-            </>
+            <UsersTable
+              users={users}
+              currentPage={currentPage}
+              totalPages={pagination?.last_page || 1}
+              totalItems={pagination?.total || 0}
+              itemsPerPage={10}
+              onPageChange={setCurrentPage}
+              onViewDetails={handleViewDetails}
+              onActivate={handleActivate}
+              onDeactivate={handleDeactivate}
+            />
           )}
         </CardContent>
       </Card>
@@ -130,17 +137,26 @@ const UsersListPage: React.FC = () => {
         open={actionType === "view" && showDialog}
         onOpenChange={setShowDialog}
         user={actionType === "view" ? selectedUser : null}
+        onEdit={handleEditFromDetails} 
+      />
+
+      <UserFormDialog
+        open={(actionType === "create" || actionType === "edit") && showDialog}
+        onOpenChange={setShowDialog}
+        onSave={handleSaveUser}
+        user={selectedUser}
+        isLoading={actionType === "create" ? isCreating : isUpdating}
+        mode={actionType === "create" ? "create" : "edit"}
       />
 
       <ConfirmActionDialog
-        open={actionType !== "view" && showDialog}
+        open={actionType === "activate" || actionType === "deactivate" && showDialog}
         onOpenChange={setShowDialog}
         title={`${getActionText()} User`}
         description={getActionDescription()}
         confirmText={getActionText()}
         onConfirm={executeAction}
         isLoading={isLoading}
-        variant={actionType === "suspend" ? "destructive" : "default"}
       />
     </div>
   );
