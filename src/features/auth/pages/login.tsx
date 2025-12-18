@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { LanguageToggle } from "@/shared/components/language-toggle";
-import bankLogo from "@/assets/Gemini_Generated_Image_uftp5guftp5guftp-removebg-preview.png";
+import bankLogo from "@/assets/finza.png";
 import { LoginForm } from "../components/LoginForm";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
