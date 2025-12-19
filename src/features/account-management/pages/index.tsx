@@ -12,6 +12,8 @@ import AccountDialog from "../components/AccountDialog";
 
 import { useAccounts } from "@/features/account-management/services/queries";
 import { AccountTable } from "../components/AccountTable";
+import { useUpdateAccountStatus } from "@/features/account-management/services/mutations";
+
 
 const ITEMS_PER_PAGE = 5;
 
@@ -44,6 +46,8 @@ const AccountsPage: React.FC = () => {
     setDialogOpen(false);
     setParentAccountId(null);
   };
+  const { mutate: updateStatus } = useUpdateAccountStatus();
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -113,9 +117,8 @@ const AccountsPage: React.FC = () => {
               setParentAccountId(acc.id);
               setDialogOpen(true);
             }}
-            onChangeStatus={(id, status) => {
-              console.log("Change status:", id, status);
-              // Implement mutation to API
+            onChangeStatus={(accountId, newState) => {
+              updateStatus({ accountId, state: newState }); 
             }}
           />
         )}
