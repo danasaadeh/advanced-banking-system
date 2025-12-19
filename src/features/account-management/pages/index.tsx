@@ -10,10 +10,13 @@ import type { Role, CreateAccountPayload } from "../types/accounts.data";
 import AccountsPagination from "@/features/account-management/components/AccountsPagenation";
 import AccountDialog from "../components/AccountDialog";
 
-import { useAccounts } from "@/features/account-management/services/queries";
+import {
+  useAccount,
+  useAccounts,
+} from "@/features/account-management/services/queries";
 import { AccountTable } from "../components/AccountTable";
 import { useUpdateAccountStatus } from "@/features/account-management/services/mutations";
-
+import AccountDetailsDialog from "../components/AccountDetailsDialog";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -23,6 +26,9 @@ const AccountsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentAccountId, setParentAccountId] = useState<number | null>(null);
+  const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(
+    null
+  ); // NEW
 
   const [newAccount, setNewAccount] = useState<CreateAccountPayload>({
     account_type_id: 1,
@@ -46,8 +52,23 @@ const AccountsPage: React.FC = () => {
     setDialogOpen(false);
     setParentAccountId(null);
   };
+
   const { mutate: updateStatus } = useUpdateAccountStatus();
 
+  const handleChangeStatus = (accountId: number, newState: string) => {
+    setUpdatingAccountId(accountId); // start loading
+    updateStatus(
+      { accountId, state: newState as any },
+      {
+        onSettled: () => setUpdatingAccountId(null), // stop loading after success/fail
+      }
+    );
+  };
+
+  const [viewAccountId, setViewAccountId] = useState<number | null>(null);
+  const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
+
+  const handleViewDetails = (accountId: number) => setViewAccountId(accountId);
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,13 +106,13 @@ const AccountsPage: React.FC = () => {
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setCurrentPage(1); // reset page when search changes
+            setCurrentPage(1);
           }}
           className="pl-9"
         />
       </div>
 
-      {/* CARD WITH LOADING / ERROR / EMPTY / DATA */}
+      {/* CARD */}
       <Card className="p-4 min-h-[200px] flex items-center justify-center">
         {isLoading ? (
           <div className="text-center">
@@ -117,9 +138,10 @@ const AccountsPage: React.FC = () => {
               setParentAccountId(acc.id);
               setDialogOpen(true);
             }}
-            onChangeStatus={(accountId, newState) => {
-              updateStatus({ accountId, state: newState }); 
-            }}
+            onChangeStatus={handleChangeStatus} // pass handler
+            onViewDetails={handleViewDetails}
+            fetchingAccountId={viewAccountId}
+            updatingAccountId={updatingAccountId} // pass loading state
           />
         )}
       </Card>
@@ -135,7 +157,7 @@ const AccountsPage: React.FC = () => {
         />
       )}
 
-      {/* DIALOG */}
+      {/* DIALOGS */}
       <AccountDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
@@ -143,6 +165,11 @@ const AccountsPage: React.FC = () => {
         value={newAccount}
         onChange={setNewAccount}
         onConfirm={() => handleAddAccount(parentAccountId)}
+      />
+      <AccountDetailsDialog
+        account={accountDetails}
+        open={!!viewAccountId}
+        setOpen={() => setViewAccountId(null)}
       />
     </div>
   );

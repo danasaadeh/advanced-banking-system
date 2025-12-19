@@ -14,6 +14,9 @@ interface AccountTableProps {
   accounts: Account[];
   onAddSubAccount: (account: Account) => void;
   onChangeStatus: (id: number, status: AccountStatus) => void;
+  onViewDetails: (accountId: number) => void;
+  fetchingAccountId?: number | null;
+  updatingAccountId?: number | null;
   role: Role;
 }
 
@@ -21,10 +24,13 @@ export const AccountTable: React.FC<AccountTableProps> = ({
   accounts,
   onAddSubAccount,
   onChangeStatus,
+  onViewDetails,
   role,
+  fetchingAccountId,
+  updatingAccountId,
 }) => (
   <Table className="min-w-[700px] sticky-header">
-    <TableHeader className="hidden md:table-header-group  sticky top-0 z-10">
+    <TableHeader className="hidden md:table-header-group sticky top-0 z-10">
       <TableRow>
         <TableHead>Account</TableHead>
         <TableHead>Type</TableHead>
@@ -44,9 +50,13 @@ export const AccountTable: React.FC<AccountTableProps> = ({
           level={0}
           onAddSubAccount={onAddSubAccount}
           onChangeStatus={onChangeStatus}
+          onViewDetails={onViewDetails}
+          fetchingAccountId={fetchingAccountId}
+          updatingAccountId={updatingAccountId}
           role={role}
         />
       ))}
     </TableBody>
   </Table>
 );
+

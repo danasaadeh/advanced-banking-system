@@ -24,6 +24,7 @@ export const useUpdateAccountStatus = () => {
       onError: (err) => {
         console.error("Failed to update account status:", err);
       },
+      
     }
   );
 };
