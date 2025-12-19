@@ -8,9 +8,9 @@ import { StatisticsPage } from "@/features/statistics/pages";
 import RoleProtectedRoute from "@/shared/components/role-protected-route";
 import UsersListPage from "@/features/users/pages/UsersListPage";
 import OverviewPage from "../pages/dashboard";
-import ScheduledTrans from "@/features/scheduled-trans/pages";
 
 import CustomerServiceRoutes from "@/features/customer-service/routes/CustomerServiceRoutes";
+import { ScheduledRecurringTransactionsPage } from "@/features/scheduled-trans/pages";
 
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
@@ -45,7 +45,10 @@ export const dashboardRoutes = [
     children: [
       { index: true, element: Load(<OverviewPage />) },
       { path: "transactions", element: Load(<Transactions />) },
-      { path: "scheduled-transactions", element: Load(<ScheduledTrans />) },
+      {
+        path: "scheduled-transactions",
+        element: Load(<ScheduledRecurringTransactionsPage />),
+      },
       { path: "accounts", element: Load(<Accounts />) },
       { path: "users", element: Load(<UsersListPage />) },
       { path: "customer-service/*", element: Load(<CustomerServiceRoutes />) },
