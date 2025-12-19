@@ -10,36 +10,37 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Separator } from "@/shared/components/ui/separator";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/shared/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/ui/popover";
-import { Button } from "@/shared/components/ui/button";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { ROLES_OPTIONS, STATUS_OPTIONS } from "../types/user.types";
-import type { UserFormData } from "../types/user.types";
+import { ROLES_OPTIONS, STATUS_OPTIONS, type UserFormData } from "../types/user.types";
 
 interface UserFormContentProps {
   formData: UserFormData;
-  dateOfBirth?: Date;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onRoleChange: (value: string) => void;
   onStatusChange: (value: "active" | "inactive") => void;
-  onDateSelect: (date: Date | undefined) => void;
 }
 
 export const UserFormContent: React.FC<UserFormContentProps> = ({
   formData,
-  dateOfBirth,
   onInputChange,
   onRoleChange,
   onStatusChange,
-  onDateSelect,
 }) => {
+  // تنسيق التاريخ لعرضه في input type="date" (YYYY-MM-DD)
+  const formatDateForInput = (dateString: string) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      return "";
+    }
+  };
+
   return (
     <div className="space-y-4 p-6">
       {/* Personal Information */}
@@ -64,7 +65,7 @@ export const UserFormContent: React.FC<UserFormContentProps> = ({
             <Input
               id="middle_name"
               name="middle_name"
-              value={formData.middle_name}
+              value={formData.middle_name || ""}
               onChange={onInputChange}
               placeholder="Middle"
             />
@@ -139,35 +140,16 @@ export const UserFormContent: React.FC<UserFormContentProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="date_of_birth">Date of Birth *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dateOfBirth && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateOfBirth ? (
-                    format(dateOfBirth, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dateOfBirth}
-                  onSelect={onDateSelect}
-                  initialFocus
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              id="date_of_birth"
+              name="date_of_birth"
+              type="date"
+              value={formatDateForInput(formData.date_of_birth)}
+              onChange={onInputChange}
+              required
+              className="h-9"
+              max={new Date().toISOString().split('T')[0]} // لا يمكن اختيار تاريخ مستقبلي
+            />
           </div>
         </div>
       </div>
@@ -180,14 +162,14 @@ export const UserFormContent: React.FC<UserFormContentProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="address">Full Address *</Label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={onInputChange}
-            placeholder="123 Main St, City, Country"
-            required
-          />
+            <Input
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={onInputChange}
+              placeholder="123 Main St, City, Country"
+              required
+            />
         </div>
       </div>
 
@@ -220,7 +202,7 @@ export const UserFormContent: React.FC<UserFormContentProps> = ({
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select
-              value={formData.status}
+              value={formData.status || "active"}
               onValueChange={onStatusChange}
             >
               <SelectTrigger>

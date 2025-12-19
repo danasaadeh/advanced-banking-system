@@ -21,8 +21,6 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
     status: "active",
   });
 
-  const [dateOfBirth, setDateOfBirth] = useState<Date>();
-
   // Initialize form when user changes or mode changes
   useEffect(() => {
     if (mode === "edit" && user) {
@@ -38,10 +36,6 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
         roles: user.roles,
         status: user.status,
       });
-
-      if (user.date_of_birth) {
-        setDateOfBirth(new Date(user.date_of_birth));
-      }
     } else {
       // Reset form for create mode
       resetForm();
@@ -61,7 +55,6 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
       roles: [],
       status: "active",
     });
-    setDateOfBirth(undefined);
   };
 
   const handleInputChange = (
@@ -88,20 +81,6 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
     }));
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setDateOfBirth(date);
-    if (date) {
-      // تنسيق التاريخ بشكل YYYY-MM-DD كما يتوقع الـ API
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      setFormData((prev) => ({
-        ...prev,
-        date_of_birth: `${year}-${month}-${day}`,
-      }));
-    }
-  };
-
   const prepareSubmitData = (): UserFormData => {
     return {
       first_name: formData.first_name,
@@ -119,13 +98,10 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
 
   return {
     formData,
-    dateOfBirth,
     setFormData,
-    setDateOfBirth,
     handleInputChange,
     handleRoleChange,
     handleStatusChange,
-    handleDateSelect,
     resetForm,
     prepareSubmitData,
   };

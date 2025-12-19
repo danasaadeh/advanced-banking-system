@@ -1,4 +1,3 @@
-// features/users/hooks/useUserActions.ts
 import { useState } from "react";
 import { useActivateUser, useDeactivateUser, useCreateUser, useUpdateUser } from "../services/user.mutations";
 import type { User, UserFormData } from "../types/user.types";
@@ -60,16 +59,25 @@ export const useUserActions = () => {
     setActionType(null);
   };
 
-  const handleSaveUser = (userData: UserFormData, userId?: number) => {
-    if (userId) {
-      updateUser.mutate({ userId, userData });
-    } else {
-      createUser.mutate(userData);
+  const handleSaveUser = async (userData: UserFormData, userId?: number): Promise<{ success: boolean; message: string }> => {
+    try {
+      if (userId) {
+        await updateUser.mutateAsync({ userId, userData });
+        return { success: true, message: "User updated successfully" };
+      } else {
+        await createUser.mutateAsync(userData);
+        return { success: true, message: "User created successfully" };
+      }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        message: error.message || "Operation failed" 
+      };
+    } finally {
+      setShowDialog(false);
+      setSelectedUser(null);
+      setActionType(null);
     }
-    
-    setShowDialog(false);
-    setSelectedUser(null);
-    setActionType(null);
   };
 
   const getActionText = () => {
@@ -122,8 +130,6 @@ export const useUserActions = () => {
     executeAction,
     getActionText,
     getActionDescription,
-    isLoading: activateUser.isLoading || deactivateUser.isLoading || createUser.isLoading || updateUser.isLoading,
-    isCreating: createUser.isLoading,
-    isUpdating: updateUser.isLoading,
+    isLoading: activateUser.isLoading || deactivateUser.isLoading,
   };
 };

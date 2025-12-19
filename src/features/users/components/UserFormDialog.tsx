@@ -1,5 +1,4 @@
-// features/users/components/UserFormDialog.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +13,13 @@ import { Loader2 } from "lucide-react";
 import type { User, UserFormData } from "../types/user.types";
 import { useUserForm } from "../hooks/useUserForm";
 import { UserFormContent } from "./UserFormContent";
+import { toast } from "@/shared/components/ui/sonner";
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (userData: UserFormData, userId?: number) => void;
+  onSave: (userData: UserFormData, userId?: number) => Promise<{ success: boolean; message: string }>;
   user?: User | null;
-  isLoading?: boolean;
   mode: "create" | "edit";
 }
 
@@ -29,29 +28,49 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   onOpenChange,
   onSave,
   user,
-  isLoading = false,
   mode,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const {
     formData,
-    dateOfBirth,
     handleInputChange,
     handleRoleChange,
     handleStatusChange,
-    handleDateSelect,
     resetForm,
     prepareSubmitData,
   } = useUserForm({ user, mode });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const dataToSend = prepareSubmitData();
+    if (!formData.first_name || !formData.last_name || !formData.email || 
+        !formData.phone || !formData.national_id || !formData.date_of_birth || 
+        !formData.address || formData.roles.length === 0) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
-    if (mode === "edit" && user) {
-      onSave(dataToSend, user.id);
-    } else {
-      onSave(dataToSend);
+    setIsSubmitting(true);
+    
+    try {
+      const dataToSend = prepareSubmitData();
+      const result = await onSave(dataToSend, user?.id);
+
+      if (result.success) {
+        toast.success(result.message);
+        
+        setTimeout(() => {
+          resetForm();
+          onOpenChange(false);
+        }, 500);
+      } else {
+        toast.error(result.message || "Operation failed");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -61,8 +80,10 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
     : `Edit ${user?.first_name} ${user?.last_name}'s information.`;
 
   const handleDialogOpenChange = (open: boolean) => {
-    if (!open) resetForm();
-    onOpenChange(open);
+    if (!open && !isSubmitting) {
+      resetForm();
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -81,11 +102,9 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
           <ScrollArea className="h-[calc(90vh-180px)]">
             <UserFormContent
               formData={formData}
-              dateOfBirth={dateOfBirth}
               onInputChange={handleInputChange}
               onRoleChange={handleRoleChange}
               onStatusChange={handleStatusChange}
-              onDateSelect={handleDateSelect}
             />
           </ScrollArea>
 
@@ -94,18 +113,20 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
               type="button"
               variant="outline"
               onClick={() => {
-                resetForm();
-                onOpenChange(false);
+                if (!isSubmitting) {
+                  resetForm();
+                  onOpenChange(false);
+                }
               }}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {mode === "create" ? "Creating..." : "Saving..."}
+                  {mode === "create" ? "Creating User..." : "Saving Changes..."}
                 </>
               ) : (
                 mode === "create" ? "Create User" : "Save Changes"
@@ -113,6 +134,17 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
             </Button>
           </DialogFooter>
         </form>
+
+        {isSubmitting && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                {mode === "create" ? "Creating user..." : "Updating user..."}
+              </p>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
