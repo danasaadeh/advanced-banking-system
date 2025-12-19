@@ -133,7 +133,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
 ];
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 const TransactionsPage: React.FC = () => {
   /* ---------------- SEARCH ---------------- */
