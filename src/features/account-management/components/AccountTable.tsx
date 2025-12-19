@@ -8,7 +8,7 @@ import {
   TableBody,
 } from "@/shared/components/ui/table";
 import { AccountRow } from "./AccountRow";
-import type{ Account, Role, AccountStatus } from "@/features/account-management/pages/accounts.data";
+import type{ Account, Role, AccountStatus } from "@/features/account-management/types/accounts.data";
 
 interface AccountTableProps {
   accounts: Account[];
@@ -24,7 +24,7 @@ export const AccountTable: React.FC<AccountTableProps> = ({
   role,
 }) => (
   <Table className="min-w-[700px] sticky-header">
-    <TableHeader className="hidden md:table-header-group sticky top-0 z-10">
+    <TableHeader className="hidden md:table-header-group  sticky top-0 z-10">
       <TableRow>
         <TableHead>Account</TableHead>
         <TableHead>Type</TableHead>

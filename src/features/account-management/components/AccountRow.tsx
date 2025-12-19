@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
@@ -9,9 +10,17 @@ import {
   SelectContent,
   SelectItem,
 } from "@/shared/components/ui/select";
-import { ChevronRight, ChevronDown, Zap, Eye, Plus } from "lucide-react";
-import type { Account, Role, AccountStatus } from "@/features/account-management/pages/accounts.data";
-import { cn, typeColors, statusColors } from "@/features/account-management/types/typeColors";
+import { ChevronRight, ChevronDown, Eye, Plus } from "lucide-react";
+import type {
+  Account,
+  Role,
+  AccountStatus,
+} from "@/features/account-management/types/accounts.data";
+import {
+  cn,
+  typeColors,
+  statusColors,
+} from "@/features/account-management/types/typeColors";
 
 interface AccountRowProps {
   account: Account;
@@ -29,13 +38,11 @@ export const AccountRow: React.FC<AccountRowProps> = ({
   role,
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const isParent = Boolean(account.children?.length);
-const isRootAccount = !account.parent_account_id;
-const canAdd =
-  isRootAccount && account.status !== "closed";
-
+  const isParent = Boolean(account.children?.length); 
+  const canAddSub = isParent && account.current_state.state !== "closed";
   const canEditStatus =
-    (role === "admin" || role === "manager") && account.status !== "closed";
+    (role === "admin" || role === "manager") &&
+    account.current_state.state !== "closed";
 
   return (
     <>
@@ -77,11 +84,6 @@ const canAdd =
                 <span className="font-semibold text-sm">
                   {account.account_number}
                 </span>
-                {account.isPremium && (
-                  <div className="flex items-center gap-1 text-[10px] text-amber-600 font-bold uppercase">
-                    <Zap className="h-3 w-3 fill-current" /> Premium
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -91,10 +93,10 @@ const canAdd =
           <span
             className={cn(
               "px-4 py-1 rounded-full text-xs font-semibold",
-              typeColors[account.type_name]
+              typeColors[account.account_type.name]
             )}
           >
-            {account.type_name}
+            {account.account_type.name}
           </span>
         </TableCell>
         <TableCell className="font-mono text-xs text-muted-foreground">
@@ -108,7 +110,7 @@ const canAdd =
 
         <TableCell>
           <Select
-            value={account.status}
+            value={account.current_state?.state || "active"}
             onValueChange={(v) =>
               onChangeStatus(account.id, v as AccountStatus)
             }
@@ -116,14 +118,14 @@ const canAdd =
           >
             <SelectTrigger
               className={cn(
-                "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary",
-                statusColors[account.status]
+                "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border focus:outline-none focus:ring-2 focus:ring-primary",
+                statusColors[account.current_state?.state || "active"]
               )}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-lg shadow-lg">
-              {["active", "inactive", "closed"].map((s) => (
+              {["active", "frozen", "suspended", "closed"].map((s) => (
                 <SelectItem
                   key={s}
                   value={s}
@@ -143,7 +145,7 @@ const canAdd =
           {account.created_at}
         </TableCell>
         <TableCell className="text-xs text-muted-foreground">
-          {account.status === "closed" ? (
+          {account.current_state?.state === "closed" ? (
             <div className="flex flex-col">
               <span className="font-semibold">
                 Reason: {account.closed_reason || "-"}
@@ -159,7 +161,7 @@ const canAdd =
 
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            {canAdd && (
+            {canAddSub && (
               <Button
                 variant="outline"
                 size="sm"
