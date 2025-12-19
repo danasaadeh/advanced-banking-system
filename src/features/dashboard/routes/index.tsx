@@ -9,13 +9,14 @@ import RoleProtectedRoute from "@/shared/components/role-protected-route";
 import UsersListPage from "@/features/users/pages/UsersListPage";
 import OverviewPage from "../pages/dashboard";
 
+import CustomerServiceRoutes from "@/features/customer-service/routes/CustomerServiceRoutes";
+
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
 const Transactions = lazy(() => import("../../transactions/pages"));
 
 const Settings = lazy(() => import("../pages/settings"));
 const Accounts = lazy(() => import("../../account-management/pages"));
-const CustomerService = lazy(() => import("../pages/customer-service"));
 
 const Load = (c: JSX.Element) => (
   <Suspense
@@ -45,8 +46,7 @@ export const dashboardRoutes = [
       { path: "transactions", element: Load(<Transactions />) },
       { path: "accounts", element: Load(<Accounts />) },
       { path: "users", element: Load(<UsersListPage />) },
-
-      { path: "customer-service", element: Load(<CustomerService />) },
+      { path: "customer-service/*", element: Load(<CustomerServiceRoutes />) },
     ],
   },
 ];

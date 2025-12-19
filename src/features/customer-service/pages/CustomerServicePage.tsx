@@ -1,0 +1,163 @@
+// features/customer-service/pages/CustomerServicePage.tsx
+import React, { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { useCustomerServiceFilters } from "../hooks/useCustomerServiceFilters";
+import { useCustomerServiceActions } from "../hooks/useCustomerServiceActions";
+import { useTickets } from "../services/customer-service.queries";
+import { TicketsFilters } from "../components/TicketsFilters";
+import { TicketCard } from "../components/TicketCard";
+import { TicketFormDialog } from "../components/TicketFormDialog";
+import { TicketDetailsDialog } from "../components/TicketDetailsDialog";
+import { TicketsPagination } from "../components/TicketsPagination";
+import type { Ticket } from "../types/customer-service.types";
+
+const CustomerServicePage: React.FC = () => {
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedStatus,
+    setSelectedStatus,
+    currentPage,
+    setCurrentPage,
+  } = useCustomerServiceFilters();
+
+  const {
+    actionType,
+    showDialog,
+    setShowDialog,
+    handleCreateTicket,
+    handleSaveTicket,
+    isLoading,
+  } = useCustomerServiceActions();
+
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+
+  const { data, isLoading: isLoadingTickets, isError } = useTickets({
+    search: searchQuery,
+    status: selectedStatus,
+    page: currentPage,
+    perPage: 8,
+  });
+
+  const tickets = data?.data || [];
+  const pagination = data?.pagination;
+
+  const ITEMS_PER_PAGE = 8;
+  const totalItems = pagination?.total || 0;
+  const totalPages = pagination?.last_page || 1;
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleTicketClick = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setShowDetailsDialog(true);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Customer Service</h1>
+        </div>
+
+        <Button
+          onClick={handleCreateTicket}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          New Ticket
+        </Button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        <div className="relative w-full lg:max-w-sm">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tickets by title, description, or customer..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <TicketsFilters
+          selectedStatus={selectedStatus}
+          onStatusChange={(value) => {
+            setSelectedStatus(value);
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+
+      {/* Tickets Grid */}
+      {isLoadingTickets ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading tickets...</p>
+          </div>
+        </div>
+      ) : isError ? (
+        <div className="text-center text-red-500 py-8">
+          Failed to load tickets. Please try again.
+        </div>
+      ) : tickets.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No tickets found</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Try adjusting your search or filters
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {tickets.map((ticket) => (
+              <TicketCard
+                key={ticket.id}
+                ticket={ticket}
+                onClick={handleTicketClick}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalItems > ITEMS_PER_PAGE && (
+            <div className="mt-4">
+              <TicketsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Dialogs */}
+      <TicketFormDialog
+        open={actionType === "create" && showDialog}
+        onOpenChange={setShowDialog}
+        onSave={handleSaveTicket}
+        isLoading={isLoading}
+      />
+
+      <TicketDetailsDialog
+        ticket={selectedTicket}
+        open={showDetailsDialog}
+        onOpenChange={setShowDetailsDialog}
+      />
+    </div>
+  );
+};
+
+export default CustomerServicePage;
