@@ -9,6 +9,8 @@ import {
   Building,
   PhoneCall,
   Users,
+  ArrowLeftRight,
+  Headset,
 } from "lucide-react";
 
 export const dashboardMenu = (t: any) => [
@@ -21,8 +23,9 @@ export const dashboardMenu = (t: any) => [
   {
     title: t("transactions"),
     url: "/dashboard/transactions",
-    icon: FileText,
+    icon: ArrowLeftRight,
   },
+
   {
     title: t("users"),
     url: "/dashboard/users",
@@ -33,10 +36,11 @@ export const dashboardMenu = (t: any) => [
     url: "/dashboard/accounts",
     icon: Building,
   },
+
   {
     title: t("customer Service"),
     url: "/dashboard/customer-service",
-    icon: PhoneCall,
+    icon: Headset,
   },
 ];
 
