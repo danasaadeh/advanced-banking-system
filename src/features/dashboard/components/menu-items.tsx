@@ -11,6 +11,7 @@ import {
   Users,
   ArrowLeftRight,
   Headset,
+  ClockFading,
 } from "lucide-react";
 
 export const dashboardMenu = (t: any) => [
@@ -24,6 +25,11 @@ export const dashboardMenu = (t: any) => [
     title: t("transactions"),
     url: "/dashboard/transactions",
     icon: ArrowLeftRight,
+  },
+  {
+    title: t("scheduled"),
+    url: "/dashboard/scheduled-transactions",
+    icon: ClockFading,
   },
 
   {

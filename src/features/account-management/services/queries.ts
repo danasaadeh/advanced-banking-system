@@ -8,6 +8,7 @@ interface UseAccountsOptions {
   perPage?: number;
 }
 
+// Fetch all accounts with optional search
 export const useAccounts = ({ search = "", page = 1, perPage = 15 }: UseAccountsOptions) => {
   return useQuery<AccountGroupsResponse, Error>({
     queryKey: ["accounts", search, page, perPage],
@@ -15,13 +16,14 @@ export const useAccounts = ({ search = "", page = 1, perPage = 15 }: UseAccounts
       accountsApiService.getAccountGroups({
         page,
         per_page: perPage,
-        search, 
+        search,
       }),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
 
+// Fetch single account by ID
 export const useAccount = (accountGroupId: number | string | undefined) => {
   return useQuery<AccountGroupResponse, Error>({
     queryKey: ["account", accountGroupId],
@@ -34,3 +36,4 @@ export const useAccount = (accountGroupId: number | string | undefined) => {
     refetchOnWindowFocus: false,
   });
 };
+

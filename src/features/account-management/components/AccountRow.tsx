@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/shared/components/ui/button";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
 import {
   Select,
@@ -21,13 +20,17 @@ import {
   typeColors,
   statusColors,
 } from "@/features/account-management/types/typeColors";
+import { Button } from "@/shared/components/ui/button";
 
 interface AccountRowProps {
   account: Account;
   level: number;
   onAddSubAccount: (parent: Account) => void;
   onChangeStatus: (id: number, status: AccountStatus) => void;
+  onViewDetails: (accountId: number) => void;
   role: Role;
+  fetchingAccountId?: number | null; 
+  updatingAccountId?: number | null; 
 }
 
 export const AccountRow: React.FC<AccountRowProps> = ({
@@ -35,10 +38,13 @@ export const AccountRow: React.FC<AccountRowProps> = ({
   level,
   onAddSubAccount,
   onChangeStatus,
+  onViewDetails,
   role,
+  fetchingAccountId,
+  updatingAccountId,
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const isParent = Boolean(account.children?.length); 
+  const isParent = Boolean(account.children?.length);
   const canAddSub = isParent && account.current_state.state !== "closed";
   const canEditStatus =
     (role === "admin" || role === "manager") &&
@@ -99,9 +105,11 @@ export const AccountRow: React.FC<AccountRowProps> = ({
             {account.account_type.name}
           </span>
         </TableCell>
+
         <TableCell className="font-mono text-xs text-muted-foreground">
           {account.currency}
         </TableCell>
+
         <TableCell className="text-right font-bold">
           {account.balance.toLocaleString(undefined, {
             minimumFractionDigits: 2,
@@ -109,41 +117,46 @@ export const AccountRow: React.FC<AccountRowProps> = ({
         </TableCell>
 
         <TableCell>
-          <Select
-            value={account.current_state?.state || "active"}
-            onValueChange={(v) =>
-              onChangeStatus(account.id, v as AccountStatus)
-            }
-            disabled={!canEditStatus}
-          >
-            <SelectTrigger
-              className={cn(
-                "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border focus:outline-none focus:ring-2 focus:ring-primary",
-                statusColors[account.current_state?.state || "active"]
-              )}
+          {updatingAccountId === account.id ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto" />
+          ) : (
+            <Select
+              value={account.current_state?.state || "active"}
+              onValueChange={(v) =>
+                onChangeStatus(account.id, v as AccountStatus)
+              }
+              disabled={!canEditStatus}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-lg shadow-lg">
-              {["active", "frozen", "suspended", "closed"].map((s) => (
-                <SelectItem
-                  key={s}
-                  value={s}
-                  className={cn(
-                    "rounded-lg px-6 py-1",
-                    statusColors[s as AccountStatus]
-                  )}
-                >
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                className={cn(
+                  "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border focus:outline-none focus:ring-2 focus:ring-primary",
+                  statusColors[account.current_state?.state || "active"]
+                )}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-lg shadow-lg">
+                {["active", "frozen", "suspended", "closed"].map((s) => (
+                  <SelectItem
+                    key={s}
+                    value={s}
+                    className={cn(
+                      "rounded-lg px-6 py-1",
+                      statusColors[s as AccountStatus]
+                    )}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </TableCell>
 
         <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
           {account.created_at}
         </TableCell>
+
         <TableCell className="text-xs text-muted-foreground">
           {account.current_state?.state === "closed" ? (
             <div className="flex flex-col">
@@ -171,13 +184,22 @@ export const AccountRow: React.FC<AccountRowProps> = ({
                 <Plus className="h-4 w-4 mr-1" /> Add Sub-account
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full hover:bg-muted/20"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
+            {/* Eye icon only for top-level accounts */}
+            {level === 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full hover:bg-muted/20 flex items-center justify-center"
+                onClick={() => onViewDetails(account.id)}
+                disabled={fetchingAccountId === account.id}
+              >
+                {fetchingAccountId === account.id ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            )}
           </div>
         </TableCell>
       </TableRow>
@@ -190,6 +212,9 @@ export const AccountRow: React.FC<AccountRowProps> = ({
             level={level + 1}
             onAddSubAccount={onAddSubAccount}
             onChangeStatus={onChangeStatus}
+            onViewDetails={onViewDetails}
+            fetchingAccountId={fetchingAccountId}
+            updatingAccountId={updatingAccountId}
             role={role}
           />
         ))}
