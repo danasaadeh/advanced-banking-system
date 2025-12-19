@@ -10,6 +10,7 @@ import TransactionsPagination from "../components/trans-pagination";
 import type { Transaction } from "../types";
 import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
 import { TransactionDetailsDialog } from "../components/trans-details-dialog";
+import { AddTransactionDialog } from "../components/add-trans-dialog";
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
@@ -160,6 +161,9 @@ const TransactionsPage: React.FC = () => {
   const [detailsTransaction, setDetailsTransaction] =
     useState<Transaction | null>(null);
 
+  /* ---------------- ADD TRANSACTION DIALOG ---------------- */
+  const [addOpen, setAddOpen] = useState(false);
+
   /* ---------------- PAGINATION ---------------- */
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -234,7 +238,7 @@ const TransactionsPage: React.FC = () => {
   };
 
   const handleAddTransaction = () => {
-    console.log("Add Transaction");
+    setAddOpen(true);
   };
 
   return (
@@ -320,6 +324,10 @@ const TransactionsPage: React.FC = () => {
         onOpenChange={setDetailsOpen}
         transaction={detailsTransaction}
       />
+
+      {/* ---------------- ADD TRANSACTION DIALOG ---------------- */}
+      <AddTransactionDialog open={addOpen} onOpenChange={setAddOpen} />
+
       {selectedTransaction && confirmAction && (
         <ConfirmDialog
           open={confirmOpen}
