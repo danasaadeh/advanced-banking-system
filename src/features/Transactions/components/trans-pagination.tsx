@@ -18,6 +18,10 @@ const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
 }) => {
   const safeTotal = totalItems || 0;
   const safePage = currentPage || 1;
+  const paginationButtonBase =
+    "min-w-[70px] px-3 py-1 rounded flex items-center justify-center " +
+    "bg-primary text-primary-foreground border border-border " +
+    "hover:opacity-90 disabled:opacity-40";
 
   const startIndex = safeTotal === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
   const endIndex =
@@ -36,39 +40,43 @@ const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
             )}`}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded border"
-          >
-            {t("previous")}
-          </button>
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <button
+          onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
+          disabled={safePage === 1}
+          className={paginationButtonBase}
+        >
+          Previous
+        </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => setCurrentPage(p)}
-              className={`px-3 py-1 rounded ${
-                currentPage === p ? "bg-gold text-white" : "border"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-
+        {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((p) => (
           <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded border"
+            key={p}
+            onClick={() => setCurrentPage(p)}
+            className={`
+      min-w-[40px] px-3 py-1 rounded
+      flex items-center justify-center
+      border
+      ${
+        safePage === p
+          ? "bg-primary text-primary-foreground"
+          : "bg-background text-foreground hover:bg-muted"
+      }
+    `}
           >
-            {t("next")}
+            {p}
           </button>
-        </div>
-      )}
+        ))}
+        <button
+          onClick={() =>
+            setCurrentPage(Math.min(totalPages || 1, safePage + 1))
+          }
+          disabled={safePage === totalPages}
+          className={paginationButtonBase}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

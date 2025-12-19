@@ -9,6 +9,7 @@ import TransactionsPagination from "../components/trans-pagination";
 
 import type { Transaction } from "../types";
 import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
+import { TransactionDetailsDialog } from "../components/trans-details-dialog";
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
@@ -133,7 +134,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
 ];
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 const TransactionsPage: React.FC = () => {
   /* ---------------- SEARCH ---------------- */
@@ -153,6 +154,11 @@ const TransactionsPage: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [loading, setLoading] = useState(false);
+
+  /* ---------------- DETAILS DIALOG ---------------- */
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTransaction, setDetailsTransaction] =
+    useState<Transaction | null>(null);
 
   /* ---------------- PAGINATION ---------------- */
   const [currentPage, setCurrentPage] = useState(1);
@@ -223,11 +229,8 @@ const TransactionsPage: React.FC = () => {
   };
 
   const handleViewDetails = (tx: Transaction) => {
-    console.log("View details", tx);
-    // later:
-    // - open modal
-    // - open drawer
-    // - navigate(`/transactions/${tx.id}`)
+    setDetailsTransaction(tx);
+    setDetailsOpen(true);
   };
 
   const handleAddTransaction = () => {
@@ -310,6 +313,12 @@ const TransactionsPage: React.FC = () => {
         totalPages={totalPages}
         totalItems={totalItems}
         itemsPerPage={ITEMS_PER_PAGE}
+      />
+      {/* ---------------- DETAILS DIALOG ---------------- */}
+      <TransactionDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        transaction={detailsTransaction}
       />
       {selectedTransaction && confirmAction && (
         <ConfirmDialog

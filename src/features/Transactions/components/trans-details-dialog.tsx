@@ -1,81 +1,99 @@
 import React from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
-} from "@/shared/components/ui/dialog"; // import your Dialog components
-import { Button } from "@/shared/components/ui/button"; // optional, for trigger button
+} from "@/shared/components/ui/dialog";
+import { Badge } from "@/shared/components/ui/badge";
+import type { Transaction } from "../types";
 
-interface TransactionDetails {
-  txnId: string;
-  type: string;
-  amount: string;
-  status: string;
-  approvalLevel: string;
-  toAccount: string;
-  description: string;
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  transaction: Transaction | null;
 }
 
-interface ViewTransactionDialogProps {
-  transaction: TransactionDetails;
-}
+const getStatusBadge = (status: Transaction["status"]) => {
+  switch (status) {
+    case "approved":
+      return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+    case "pending":
+      return <Badge className="bg-amber-100 text-amber-800">Pending</Badge>;
+    case "rejected":
+      return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+    default:
+      return <Badge variant="outline">Unknown</Badge>;
+  }
+};
 
-export const ViewTransactionDialog: React.FC<ViewTransactionDialogProps> = ({
+const formatAmount = (tx: Transaction) =>
+  `${tx.direction === "credit" ? "+" : "-"}${tx.amount.toLocaleString()} ${
+    tx.currency
+  }`;
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+export const TransactionDetailsDialog: React.FC<Props> = ({
+  open,
+  onOpenChange,
   transaction,
 }) => {
+  if (!transaction) return null;
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">View</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Transaction Details</DialogTitle>
-          <DialogDescription>{transaction.txnId}</DialogDescription>
+          <DialogDescription>{transaction.reference_number}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Type</p>
-            <p>{transaction.type}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Amount</p>
-            <p>{transaction.amount}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <p className="inline-block px-2 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800">
-              {transaction.status}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Approval Level
-            </p>
-            <p>{transaction.approvalLevel}</p>
-          </div>
+        {/* Content */}
+        <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+          {/* Description */}
           <div className="col-span-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              To Account
+            <p className="text-muted-foreground">Description</p>
+            <p className="font-medium">
+              {`${transaction.type} transaction for ${transaction.account}`}
             </p>
-            <p>{transaction.toAccount}</p>
           </div>
-          <div className="col-span-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              Description
-            </p>
-            <p>{transaction.description}</p>
+          <div>
+            <p className="text-muted-foreground">Type</p>
+            <p className="capitalize font-medium">{transaction.type}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Amount</p>
+            <p className="font-medium">{formatAmount(transaction)}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Status</p>
+            {getStatusBadge(transaction.status)}
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Approval level</p>
+            <p className="font-medium">{transaction.approved_by ?? "—"}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Account</p>
+            <p className="font-medium">{transaction.account}</p>
+          </div>
+
+          <div>
+            <p className="text-muted-foreground">Date</p>
+            <p className="font-medium">{formatDate(transaction.created_at)}</p>
           </div>
         </div>
-
-        <DialogClose asChild>
-          <Button className="mt-6 w-full">Close</Button>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   );
