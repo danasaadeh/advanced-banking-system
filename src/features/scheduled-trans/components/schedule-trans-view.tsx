@@ -12,6 +12,9 @@ import { RecurringTransactionsTable } from "./recurrent-trans-table";
 import { Search, CalendarClock, Repeat } from "lucide-react";
 
 import type { ScheduledTransaction, RecurringTransaction } from "../types";
+import { ScheduledTransactionDetailsDialog } from "./sched-details-dialog";
+import { EditScheduledTransactionDialog } from "./edit-sched-dialog";
+import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
 
 export interface ScheduledRecurringTransactionsViewProps {
   scheduledTransactions: ScheduledTransaction[];
@@ -77,6 +80,61 @@ export const ScheduledRecurringTransactionsView: React.FC<
     setPage(1);
   }, [tab, search]);
 
+  const [open, setOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState<ScheduledTransaction | null>(
+    null
+  );
+
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  const [retryOpen, setRetryOpen] = React.useState(false);
+  const [retryTarget, setRetryTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  const handleDeleteClick = (tx: ScheduledTransaction) => {
+    setDeleteTarget(tx);
+    setDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    console.log("scheduled delted");
+  };
+
+  const handleViewDetails = (tx: ScheduledTransaction) => {
+    setSelected(tx);
+    setOpen(true);
+  };
+  const handleEdit = (tx: ScheduledTransaction) => {
+    setSelected(tx);
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = (payload: {
+    id: number;
+    amount?: number;
+    scheduled_at?: string;
+  }) => {
+    console.log("Edit scheduled tx:", payload);
+    // 🔗 react-query mutation here
+  };
+  const handleConfirmRetry = () => {
+    if (!retryTarget) return;
+
+    console.log("Retry scheduled transaction:", retryTarget.id);
+
+    // UI-only for now
+    setRetryOpen(false);
+    setRetryTarget(null);
+  };
+
+  const handleRetryClick = (tx: ScheduledTransaction) => {
+    setRetryTarget(tx);
+    setRetryOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">
@@ -129,10 +187,10 @@ export const ScheduledRecurringTransactionsView: React.FC<
         <TabsContent value="scheduled" className="space-y-4">
           <ScheduledTransactionsTable
             schedules={scheduledPage}
-            onViewDetails={onViewScheduleDetails}
-            onEdit={onEditSchedule}
-            onCancel={onCancelSchedule}
-            onRetry={onRetrySchedule}
+            onViewDetails={handleViewDetails}
+            onEdit={handleEdit}
+            onCancel={handleDeleteClick} // 👈 IMPORTANT
+            onRetry={handleRetryClick} // 👈 HERE
           />
         </TabsContent>
 
@@ -154,6 +212,43 @@ export const ScheduledRecurringTransactionsView: React.FC<
         totalPages={totalPages || 1}
         totalItems={totalItems}
         itemsPerPage={ITEMS_PER_PAGE}
+      />
+      <ScheduledTransactionDetailsDialog
+        open={open}
+        onOpenChange={setOpen}
+        transaction={selected}
+      />
+      <EditScheduledTransactionDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        transaction={selected}
+        onSubmit={handleEditSubmit}
+      />
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Cancel Scheduled Transaction"
+        description={
+          deleteTarget
+            ? `Are you sure you want to cancel scheduled transaction #${deleteTarget.id}? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel="Cancel Transaction"
+        cancelLabel="Keep Transaction"
+        onConfirm={handleConfirmDelete}
+      />
+      <ConfirmDialog
+        open={retryOpen}
+        onOpenChange={setRetryOpen}
+        title="Retry Scheduled Transaction"
+        description={
+          retryTarget
+            ? `This will retry the failed scheduled transaction #${retryTarget.id}. Do you want to continue?`
+            : ""
+        }
+        confirmLabel="Retry Transaction"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmRetry}
       />
     </div>
   );
