@@ -45,7 +45,8 @@ export const AccountRow: React.FC<AccountRowProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(true);
   const isParent = Boolean(account.children?.length);
-  const canAddSub = isParent && account.current_state.state !== "closed";
+const canAddSub = level === 0 && account.current_state.state !== "closed";
+
   const canEditStatus =
     (role === "admin" || role === "manager") &&
     account.current_state.state !== "closed";
@@ -185,7 +186,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
               </Button>
             )}
             {/* Eye icon only for top-level accounts */}
-            {level === 0 && (
+            
               <Button
                 variant="ghost"
                 size="sm"
@@ -199,7 +200,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
                   <Eye className="h-4 w-4" />
                 )}
               </Button>
-            )}
+          
           </div>
         </TableCell>
       </TableRow>

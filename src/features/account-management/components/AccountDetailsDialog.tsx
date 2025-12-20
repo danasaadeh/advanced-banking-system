@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -16,12 +17,8 @@ import type {
 } from "@/features/account-management/types/accounts.data";
 import {
   User,
-  DollarSign,
-  Calendar,
-  CheckCircle2,
   Layers,
   ShieldCheck,
-  ArrowRight,
   Fingerprint,
 } from "lucide-react";
 
