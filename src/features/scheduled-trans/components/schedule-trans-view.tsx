@@ -12,6 +12,10 @@ import { RecurringTransactionsTable } from "./recurrent-trans-table";
 import { Search, CalendarClock, Repeat } from "lucide-react";
 
 import type { ScheduledTransaction, RecurringTransaction } from "../types";
+import { ScheduledTransactionDetailsDialog } from "./sched-details-dialog";
+import { EditScheduledTransactionDialog } from "./edit-sched-dialog";
+import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
+import { EditRecurringTransactionDialog } from "./edit-recurrent-dialog";
 
 export interface ScheduledRecurringTransactionsViewProps {
   scheduledTransactions: ScheduledTransaction[];
@@ -57,7 +61,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
     );
 
   const filteredScheduled = filterById(scheduledTransactions);
-  const filteredRecurring = filterById(recurringTransactions);
 
   /* ------------------ Pagination ------------------ */
   const paginate = <T,>(items: T[]) => {
@@ -66,16 +69,119 @@ export const ScheduledRecurringTransactionsView: React.FC<
   };
 
   const scheduledPage = paginate(filteredScheduled);
-  const recurringPage = paginate(filteredRecurring);
-
-  const totalItems =
-    tab === "scheduled" ? filteredScheduled.length : filteredRecurring.length;
-
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   React.useEffect(() => {
     setPage(1);
   }, [tab, search]);
+
+  const [recurringData, setRecurringData] = React.useState(
+    recurringTransactions
+  );
+
+  const filteredRecurring = filterById(recurringData);
+  React.useEffect(() => {
+    setRecurringData(recurringTransactions);
+  }, [recurringTransactions]);
+
+  const [open, setOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState<ScheduledTransaction | null>(
+    null
+  );
+  const recurringPage = paginate(filteredRecurring);
+
+  const totalItems =
+    tab === "scheduled" ? filteredScheduled.length : filteredRecurring.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  const [retryOpen, setRetryOpen] = React.useState(false);
+  const [retryTarget, setRetryTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  const [terminateOpen, setTerminateOpen] = React.useState(false);
+  const [terminateTarget, setTerminateTarget] =
+    React.useState<RecurringTransaction | null>(null);
+
+  const [editRecurringOpen, setEditRecurringOpen] = React.useState(false);
+  const [editRecurringTarget, setEditRecurringTarget] =
+    React.useState<RecurringTransaction | null>(null);
+
+  const handleEditRecurring = (r: RecurringTransaction) => {
+    setEditRecurringTarget(r);
+    setEditRecurringOpen(true);
+  };
+
+  const handleDeleteClick = (tx: ScheduledTransaction) => {
+    setDeleteTarget(tx);
+    setDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    console.log("scheduled delted");
+  };
+
+  const handleViewDetails = (tx: ScheduledTransaction) => {
+    setSelected(tx);
+    setOpen(true);
+  };
+  const handleEdit = (tx: ScheduledTransaction) => {
+    setSelected(tx);
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = (payload: {
+    id: number;
+    amount?: number;
+    scheduled_at?: string;
+  }) => {
+    console.log("Edit scheduled tx:", payload);
+    // 🔗 react-query mutation here
+  };
+  const handleConfirmRetry = () => {
+    if (!retryTarget) return;
+
+    console.log("Retry scheduled transaction:", retryTarget.id);
+
+    // UI-only for now
+    setRetryOpen(false);
+    setRetryTarget(null);
+  };
+
+  const handleRetryClick = (tx: ScheduledTransaction) => {
+    setRetryTarget(tx);
+    setRetryOpen(true);
+  };
+  const handleConfirmTerminate = () => {
+    if (!terminateTarget) return;
+
+    console.log("Terminate recurring transaction:", terminateTarget.id);
+
+    // UI-only
+    setTerminateOpen(false);
+    setTerminateTarget(null);
+  };
+
+  const handleTerminateClick = (r: RecurringTransaction) => {
+    setTerminateTarget(r);
+    setTerminateOpen(true);
+  };
+
+  const handleToggleRecurringActive = (
+    recurrence: RecurringTransaction,
+    active: boolean
+  ) => {
+    setRecurringData((prev) =>
+      prev.map((r) =>
+        r.id === recurrence.id ? { ...r, is_active: active } : r
+      )
+    );
+
+    console.log("Toggle recurring active:", recurrence.id, active);
+  };
 
   return (
     <div className="space-y-4">
@@ -129,10 +235,10 @@ export const ScheduledRecurringTransactionsView: React.FC<
         <TabsContent value="scheduled" className="space-y-4">
           <ScheduledTransactionsTable
             schedules={scheduledPage}
-            onViewDetails={onViewScheduleDetails}
-            onEdit={onEditSchedule}
-            onCancel={onCancelSchedule}
-            onRetry={onRetrySchedule}
+            onViewDetails={handleViewDetails}
+            onEdit={handleEdit}
+            onCancel={handleDeleteClick} // 👈 IMPORTANT
+            onRetry={handleRetryClick} // 👈 HERE
           />
         </TabsContent>
 
@@ -140,10 +246,10 @@ export const ScheduledRecurringTransactionsView: React.FC<
         <TabsContent value="recurring" className="space-y-4">
           <RecurringTransactionsTable
             recurrences={recurringPage}
-            onToggleActive={onToggleRecurring}
-            onEdit={onEditRecurring}
+            onToggleActive={handleToggleRecurringActive}
+            onEdit={handleEditRecurring}
             onViewHistory={onViewRecurringHistory}
-            onTerminate={onTerminateRecurring}
+            onTerminate={handleTerminateClick} // 👈 HERE
           />
         </TabsContent>
       </Tabs>
@@ -154,6 +260,64 @@ export const ScheduledRecurringTransactionsView: React.FC<
         totalPages={totalPages || 1}
         totalItems={totalItems}
         itemsPerPage={ITEMS_PER_PAGE}
+      />
+      <ScheduledTransactionDetailsDialog
+        open={open}
+        onOpenChange={setOpen}
+        transaction={selected}
+      />
+      <EditScheduledTransactionDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        transaction={selected}
+        onSubmit={handleEditSubmit}
+      />
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Cancel Scheduled Transaction"
+        description={
+          deleteTarget
+            ? `Are you sure you want to cancel scheduled transaction #${deleteTarget.id}? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel="Cancel Transaction"
+        cancelLabel="Keep Transaction"
+        onConfirm={handleConfirmDelete}
+      />
+      <ConfirmDialog
+        open={retryOpen}
+        onOpenChange={setRetryOpen}
+        title="Retry Scheduled Transaction"
+        description={
+          retryTarget
+            ? `This will retry the failed scheduled transaction #${retryTarget.id}. Do you want to continue?`
+            : ""
+        }
+        confirmLabel="Retry Transaction"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmRetry}
+      />
+      <ConfirmDialog
+        open={terminateOpen}
+        onOpenChange={setTerminateOpen}
+        title="Terminate Recurring Transaction"
+        description={
+          terminateTarget
+            ? `Are you sure you want to terminate recurring transaction #${terminateTarget.id}? Future executions will be permanently stopped.`
+            : ""
+        }
+        confirmLabel="Terminate"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmTerminate}
+      />
+      <EditRecurringTransactionDialog
+        open={editRecurringOpen}
+        onOpenChange={setEditRecurringOpen}
+        recurrence={editRecurringTarget}
+        onSubmit={(payload) => {
+          console.log("Edit recurrence payload:", payload);
+        }}
       />
     </div>
   );
