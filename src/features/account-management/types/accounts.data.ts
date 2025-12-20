@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 export type Role = "customer" | "manager" | "admin";
 export type AccountStatus = "active" | "frozen" | "suspended" | "closed";
+
+/* ------------------ Core Entities ------------------ */
 
 export interface AccountType {
   id: number;
@@ -12,7 +16,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  is_owner: boolean;
+  is_owner?: boolean;
 }
 
 export interface AccountState {
@@ -21,12 +25,16 @@ export interface AccountState {
   changed_at: string;
 }
 
+/* ------------------ Create Payload ------------------ */
+
 export interface CreateAccountPayload {
   account_type_id: number;
   currency: string;
   user_ids: number[];
   owner_user_id: number;
 }
+
+/* ------------------ Account Models ------------------ */
 
 export interface Account {
   id: number;
@@ -44,20 +52,9 @@ export interface Account {
   updated_at?: string;
 }
 
-export interface AccountGroup {
-  id: number;
-  account_number: string;
-  balance: number;
-  currency: string;
-  account_type: AccountType;
-  users: User[];
-  current_state: AccountState;
-  features: any[];
-  children: AccountGroup[];
-  children_count: number;
-  created_at: string;
-  updated_at: string;
-}
+export interface AccountGroup extends Account {}
+
+/* ------------------ API Responses ------------------ */
 
 export interface Pagination {
   current_page: number;
@@ -75,6 +72,18 @@ export interface AccountGroupsResponse {
 
 export interface AccountGroupResponse {
   data: AccountGroup;
+}
+
+export interface Feature {
+  id: number;
+  name: string;
+}
+
+export interface AccountCreationDataResponse {
+  users: User[];
+  account_types: AccountType[];
+  features: Feature[];
+  account_groups: Pick<AccountGroup, "id" | "account_number" | "currency">[];
 }
 
 

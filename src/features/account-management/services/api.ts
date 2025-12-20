@@ -1,5 +1,5 @@
 import { httpClient } from "@/lib/axios";
-import type { AccountGroupResponse, AccountGroupsResponse } from "../types/accounts.data";
+import type { AccountCreationDataResponse, AccountGroupResponse, AccountGroupsResponse } from "../types/accounts.data";
 
 class AccountsService {
   private baseUrl = "/accounts/groups";
@@ -16,6 +16,15 @@ class AccountsService {
     return response.data;
   }
 
+// Fetch account creation data
+   async getAccountCreationData(): Promise<AccountCreationDataResponse> {
+    const response = await httpClient.get<AccountCreationDataResponse>(
+      "/accounts/creation-data"
+    );
+    return response.data;
+  }
+
+  
   // Change account status
 async updateAccountStatus(accountId: number | string, state: string) {
   const response = await httpClient.patch(`/accounts/${accountId}/state`, { state });

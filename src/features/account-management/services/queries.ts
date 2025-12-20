@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { accountsApiService } from "./api";
-import type { AccountGroupsResponse, AccountGroupResponse } from "../types/accounts.data";
+import type {
+  AccountGroupsResponse,
+  AccountGroupResponse,
+  AccountCreationDataResponse,
+} from "../types/accounts.data";
 
 interface UseAccountsOptions {
   search?: string;
@@ -8,8 +12,12 @@ interface UseAccountsOptions {
   perPage?: number;
 }
 
-// Fetch all accounts with optional search
-export const useAccounts = ({ search = "", page = 1, perPage = 15 }: UseAccountsOptions) => {
+// Fetch all accounts
+export const useAccounts = ({
+  search = "",
+  page = 1,
+  perPage = 15,
+}: UseAccountsOptions) => {
   return useQuery<AccountGroupsResponse, Error>({
     queryKey: ["accounts", search, page, perPage],
     queryFn: () =>
@@ -37,3 +45,12 @@ export const useAccount = (accountGroupId: number | string | undefined) => {
   });
 };
 
+// Fetch account creation data
+export const useAccountCreationData = () => {
+  return useQuery<AccountCreationDataResponse, Error>({
+    queryKey: ["account-creation-data"],
+    queryFn: () => accountsApiService.getAccountCreationData(),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+};
