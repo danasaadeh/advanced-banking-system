@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { accountsApiService } from "./api";
+import { accountsApiService } from "./accounts.api";
 import { toast } from "@/shared/components/ui/sonner";
 import type { CreateAccountPayload } from "../types/accounts.data";
 

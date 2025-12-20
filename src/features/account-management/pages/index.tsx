@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -18,17 +19,15 @@ import AccountCreationDialog from "../components/AccountCreationDialog";
 import SubAccountDialog from "../components/SubAccountDialog";
 import AccountDetailsDialog from "../components/AccountDetailsDialog";
 import { AccountTable } from "../components/AccountTable";
-import GroupAccountDialog from "../components/AccountGroupCreationDialog"; // new group dialog
+import GroupAccountDialog from "../components/AccountGroupCreationDialog";
 
 import {
   useAccounts,
   useAccount,
   useAccountCreationData,
-} from "../services/queries";
-import { useUpdateAccountStatus } from "../services/mutations";
-import { useCreateAccount } from "../services/useCreateAccount";
-import { useCreateChildAccount } from "../services/useCreateChildAccount";
-import { useCreateAccountGroup } from "../services/useCreateAccountGroup"; // new hook
+} from "../services/accounts.queries";
+import { useUpdateAccountStatus } from "../services/accounts.mutations";
+import { useAccountCreationFactory } from "../services/accounts.factory";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -37,14 +36,14 @@ const AccountsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // dialogs
+  /* ---------------- dialogs ---------------- */
   const [rootDialogOpen, setRootDialogOpen] = useState(false);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
   const [parentAccount, setParentAccount] = useState<Account | null>(null);
 
-  // new account payload
+  /* ---------------- payloads ---------------- */
   const [newAccount, setNewAccount] = useState<CreateAccountPayload>({
     account_type_id: 1,
     parent_account_id: null,
@@ -54,7 +53,6 @@ const AccountsPage: React.FC = () => {
     owner_user_id: 1,
   });
 
-  // new group payload
   const [newGroup, setNewGroup] = useState<CreateAccountGroupPayload>({
     account_type_id: 1,
     currency: "USD",
@@ -62,7 +60,7 @@ const AccountsPage: React.FC = () => {
     owner_user_id: 1,
   });
 
-  // fetch accounts
+  /* ---------------- data ---------------- */
   const { data, isLoading, isError } = useAccounts({
     search,
     page: currentPage,
@@ -73,12 +71,11 @@ const AccountsPage: React.FC = () => {
   const totalItems = data?.pagination?.total ?? 0;
   const totalPages = data?.pagination?.last_page ?? 1;
 
-  // creation data
   const { data: creationData } = useAccountCreationData();
   const users = creationData?.users ?? [];
   const accountTypes = creationData?.account_types ?? [];
 
-  // account status
+  /* ---------------- status ---------------- */
   const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(
     null
   );
@@ -92,18 +89,18 @@ const AccountsPage: React.FC = () => {
     );
   };
 
-  // view account details
+  /* ---------------- details ---------------- */
   const [viewAccountId, setViewAccountId] = useState<number | null>(null);
   const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
 
-  // mutations
-  const { mutate: createRootAccount } = useCreateAccount();
-  const { mutate: createChildAccount } = useCreateChildAccount();
-  const { mutate: createGroupAccount } = useCreateAccountGroup();
+  /* ---------------- FACTORY ---------------- */
+  const { create: createAccount } = useAccountCreationFactory();
 
+  /* ---------------- handlers ---------------- */
   const handleCreateAccount = (payload: CreateAccountPayload) => {
     if (parentAccount) {
-      createChildAccount(
+      createAccount(
+        "CHILD",
         { ...payload, parent_account_id: parentAccount.id },
         {
           onSuccess: () => {
@@ -121,7 +118,7 @@ const AccountsPage: React.FC = () => {
         }
       );
     } else {
-      createRootAccount(payload, {
+      createAccount("ROOT", payload, {
         onSuccess: () => {
           setRootDialogOpen(false);
           setNewAccount({
@@ -138,7 +135,7 @@ const AccountsPage: React.FC = () => {
   };
 
   const handleCreateGroup = (payload: CreateAccountGroupPayload) => {
-    createGroupAccount(payload, {
+    createAccount("GROUP", payload, {
       onSuccess: () => {
         setGroupDialogOpen(false);
         setNewGroup({
@@ -160,6 +157,7 @@ const AccountsPage: React.FC = () => {
     }
   }, [parentAccount]);
 
+  /* ---------------- UI (UNCHANGED) ---------------- */
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -211,10 +209,8 @@ const AccountsPage: React.FC = () => {
       <Card className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading Accounts...</p>
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading Accounts...</p>
           </div>
         ) : isError ? (
           <div className="text-center text-red-500 py-8">
@@ -223,14 +219,10 @@ const AccountsPage: React.FC = () => {
         ) : accounts.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No accounts found</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Try adjusting your search or filters
-            </p>
           </div>
         ) : (
           <AccountTable
             accounts={accounts.map((acc) => ({
-              // ensure default values to avoid `state` error
               ...acc,
               state: acc.state ?? "N/A",
               balance: acc.balance ?? 0,
@@ -248,7 +240,6 @@ const AccountsPage: React.FC = () => {
         )}
       </Card>
 
-      {/* Pagination */}
       <AccountsPagination
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
@@ -257,7 +248,6 @@ const AccountsPage: React.FC = () => {
         itemsPerPage={ITEMS_PER_PAGE}
       />
 
-      {/* Dialogs */}
       <AccountCreationDialog
         open={rootDialogOpen}
         setOpen={setRootDialogOpen}
@@ -290,7 +280,7 @@ const AccountsPage: React.FC = () => {
         value={newGroup}
         onChange={setNewGroup}
         onConfirm={handleCreateGroup}
-        users={users} 
+        users={users}
         accountTypes={accountTypes}
         loading={false}
       />

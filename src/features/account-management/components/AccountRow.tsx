@@ -13,7 +13,7 @@ import { ChevronRight, ChevronDown, Eye, Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { cn, typeColors, statusColors } from "../types/typeColors";
 import type { Account, Role, AccountStatus } from "../types/accounts.data";
-import { getStateBehavior } from "../services/accountStates";
+import { getStateBehavior } from "../services/account.states";
 
 interface AccountRowProps {
   account: Account;

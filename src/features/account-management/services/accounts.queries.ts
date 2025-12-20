@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { accountsApiService } from "./api";
+import { accountsApiService } from "./accounts.api";
 import type {
   AccountGroupsResponse,
   AccountGroupResponse,
