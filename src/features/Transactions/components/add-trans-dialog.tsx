@@ -47,7 +47,7 @@ export const AddTransactionDialog: React.FC<Props> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add Transaction</DialogTitle>
+          <DialogTitle className="text-center">Add Transaction</DialogTitle>
         </DialogHeader>
 
         <Tabs value={type} onValueChange={(v) => setType(v as TransactionType)}>

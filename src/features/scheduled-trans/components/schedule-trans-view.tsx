@@ -9,6 +9,7 @@ import { Input } from "@/shared/components/ui/input";
 import TransactionsPagination from "./trans-pagination";
 import { ScheduledTransactionsTable } from "./scheduled-trans-table";
 import { RecurringTransactionsTable } from "./recurrent-trans-table";
+import { Search, CalendarClock, Repeat } from "lucide-react";
 
 import type { ScheduledTransaction, RecurringTransaction } from "../types";
 
@@ -72,36 +73,59 @@ export const ScheduledRecurringTransactionsView: React.FC<
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  /* Reset page on tab or search change */
   React.useEffect(() => {
     setPage(1);
   }, [tab, search]);
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold">
-          Scheduled & Recurring Transactions
-        </h1>
+      <h1 className="text-xl font-semibold">
+        Scheduled & Recurring Transactions
+      </h1>
 
-        {/* Search */}
-        <Input
-          placeholder="Search by Transaction ID"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="sm:w-64"
-        />
-      </div>
-
-      {/* Tabs */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-        <TabsList>
-          <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="recurring">Recurring</TabsTrigger>
-        </TabsList>
+        {/* Search LEFT / Tabs RIGHT */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Search */}
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by Transaction ID"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
 
-        {/* ---------------- Scheduled ---------------- */}
+          {/* Tabs */}
+          <TabsList className="w-fit">
+            <TabsTrigger
+              value="scheduled"
+              className="
+                flex items-center gap-2
+                data-[state=active]:bg-foreground
+                data-[state=active]:text-background
+              "
+            >
+              <CalendarClock className="h-4 w-4" />
+              Scheduled
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="recurring"
+              className="
+                flex items-center gap-2
+                data-[state=active]:bg-foreground
+                data-[state=active]:text-background
+              "
+            >
+              <Repeat className="h-4 w-4" />
+              Recurring
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Scheduled */}
         <TabsContent value="scheduled" className="space-y-4">
           <ScheduledTransactionsTable
             schedules={scheduledPage}
@@ -112,7 +136,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
           />
         </TabsContent>
 
-        {/* ---------------- Recurring ---------------- */}
+        {/* Recurring */}
         <TabsContent value="recurring" className="space-y-4">
           <RecurringTransactionsTable
             recurrences={recurringPage}
@@ -124,7 +148,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
         </TabsContent>
       </Tabs>
 
-      {/* Pagination */}
       <TransactionsPagination
         currentPage={page}
         setCurrentPage={setPage}
