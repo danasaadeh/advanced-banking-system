@@ -15,12 +15,44 @@ import type {
   AccountGroupResponse,
   Account,
 } from "@/features/account-management/types/accounts.data";
-import {
-  User,
-  Layers,
-  ShieldCheck,
-  Fingerprint,
-} from "lucide-react";
+import { User, Layers, ShieldCheck, Fingerprint } from "lucide-react";
+
+// StatusBadge component moved outside
+const StatusBadge: React.FC<{ state: string }> = ({ state }) => (
+  <Badge
+    variant={state === "active" ? "default" : "destructive"}
+    className={`capitalize font-bold ${
+      state === "active"
+        ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+        : ""
+    }`}
+  >
+    {state}
+  </Badge>
+);
+
+// UserCard component moved outside
+const UserCard: React.FC<{ user: Account["users"][0] }> = ({ user }) => (
+  <div className="flex items-center justify-between p-3 rounded-xl border bg-card/50">
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-primary/10 rounded-full">
+        <User className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold leading-none">{user.name}</p>
+        <p className="text-xs text-muted-foreground">{user.email}</p>
+      </div>
+    </div>
+    {user.is_owner && (
+      <Badge
+        variant="outline"
+        className="text-[10px] uppercase border-primary/30 text-primary"
+      >
+        Owner
+      </Badge>
+    )}
+  </div>
+);
 
 interface Props {
   account: AccountGroupResponse | undefined;
@@ -32,45 +64,9 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
   if (!account?.data) return null;
   const acc = account.data;
 
-  const StatusBadge = ({ state }: { state: string }) => (
-    <Badge
-      variant={state === "active" ? "default" : "destructive"}
-      className={`capitalize font-bold ${
-        state === "active"
-          ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-          : ""
-      }`}
-    >
-      {state}
-    </Badge>
-  );
-
-  const UserCard = ({ user }: { user: Account["users"][0] }) => (
-    <div className="flex items-center justify-between p-3 rounded-xl border bg-card/50">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-full">
-          <User className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold leading-none">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
-        </div>
-      </div>
-      {user.is_owner && (
-        <Badge
-          variant="outline"
-          className="text-[10px] uppercase border-primary/30 text-primary"
-        >
-          Owner
-        </Badge>
-      )}
-    </div>
-  );
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
-        {/* Header: Matches your Creation Dialog theme */}
         <div className="bg-black dark:bg-zinc-800 p-6 text-white">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -94,7 +90,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
 
         <ScrollArea className="max-h-[80vh]">
           <div className="p-6 space-y-8">
-            {/* 1. Quick Stats */}
+            {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-muted/30 border">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
@@ -133,8 +129,8 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
               </div>
             </div>
 
+            {/* Team Members */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* 2. Team Members */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
                   <ShieldCheck className="w-4 h-4 text-primary" />
@@ -149,7 +145,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                 </div>
               </div>
 
-              {/* 3. Features */}
+              {/* Features */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
                   <Layers className="w-4 h-4 text-primary" />
@@ -177,7 +173,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
               </div>
             </div>
 
-            {/* 4. Sub-Accounts */}
+            {/* Sub-Accounts */}
             {acc.children.length > 0 && (
               <div className="space-y-4 pt-2">
                 <Separator />

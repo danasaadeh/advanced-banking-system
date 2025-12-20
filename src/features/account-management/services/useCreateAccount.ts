@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// services/mutations/useCreateAccount.ts
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { accountsApiService } from "./api";
+import { toast } from "@/shared/components/ui/sonner";
 import type { CreateAccountPayload } from "../types/accounts.data";
 
 export const useCreateAccount = () => {
@@ -26,19 +27,20 @@ export const useCreateAccount = () => {
         const data = await accountsApiService.createAccount(payload);
         console.log("%c[useCreateAccount] Received response:", "color: green;", data);
         return data;
-      } catch (err) {
+      } catch (err: any) {
         console.error("%c[useCreateAccount] Error sending request:", "color: red;", err);
-        throw err; // re-throw for React Query to handle onError
+        throw err; 
       }
     },
     {
       onSuccess: (data) => {
         console.log("%c[useCreateAccount] Account created successfully!", "color: green; font-weight: bold;", data);
-        // Refresh accounts list after creation
         queryClient.invalidateQueries(["accounts"]);
+        toast.success(data?.message || "Account created successfully!");
       },
       onError: (err: any) => {
         console.error("%c[useCreateAccount] Mutation failed:", "color: red; font-weight: bold;", err?.response?.data || err.message);
+        toast.error(err?.response?.data?.message || err.message || "Failed to create account");
       },
     }
   );

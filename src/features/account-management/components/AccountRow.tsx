@@ -186,7 +186,7 @@ const canAddSub = level === 0 && account.current_state.state !== "closed";
               </Button>
             )}
             {/* Eye icon only for top-level accounts */}
-            
+            {level === 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -200,7 +200,7 @@ const canAddSub = level === 0 && account.current_state.state !== "closed";
                   <Eye className="h-4 w-4" />
                 )}
               </Button>
-          
+            )}
           </div>
         </TableCell>
       </TableRow>

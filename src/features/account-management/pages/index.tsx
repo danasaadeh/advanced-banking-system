@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -25,8 +26,6 @@ import {
 } from "@/features/account-management/services/queries";
 import { useUpdateAccountStatus } from "@/features/account-management/services/mutations";
 import { useCreateAccount } from "@/features/account-management/services/useCreateAccount";
-
-// Import the new child account mutation
 import { useCreateChildAccount } from "@/features/account-management/services/useCreateChildAccount";
 
 const ITEMS_PER_PAGE = 5;
@@ -177,7 +176,7 @@ const AccountsPage: React.FC = () => {
       </div>
 
       {/* Accounts table */}
-      <Card className="p-4 min-h-[200px]">
+      <Card className="p-4 ">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -213,7 +212,7 @@ const AccountsPage: React.FC = () => {
       </Card>
 
       {/* Pagination */}
-      {totalItems > ITEMS_PER_PAGE && (
+     
         <AccountsPagination
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
@@ -221,7 +220,7 @@ const AccountsPage: React.FC = () => {
           totalItems={totalItems}
           itemsPerPage={ITEMS_PER_PAGE}
         />
-      )}
+     
 
       {/* Dialogs */}
       <AccountCreationDialog
