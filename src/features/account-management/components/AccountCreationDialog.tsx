@@ -54,15 +54,9 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
   accountTypes,
   loading,
 }) => {
-  // 1. Add Search State
   const [searchTerm, setSearchTerm] = useState("");
 
-  const payload: CreateAccountPayload = {
-    ...value,
-    parent_account_id: parentAccount ? parentAccount.id : null,
-  };
-
-  // 2. Filter logic for the user list
+  // Filter users by search
   const filteredUsers = useMemo(() => {
     return users.filter(
       (user) =>
@@ -72,20 +66,17 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
   }, [users, searchTerm]);
 
   const toggleUser = (userId: number) => {
-    const currentIds = [...payload.user_ids];
+    const currentIds = [...value.user_ids];
     const index = currentIds.indexOf(userId);
-    if (index > -1) {
-      currentIds.splice(index, 1);
-    } else {
-      currentIds.push(userId);
-    }
-    onChange({ ...payload, user_ids: currentIds });
+    if (index > -1) currentIds.splice(index, 1);
+    else currentIds.push(userId);
+    onChange({ ...value, user_ids: currentIds });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-xl w-full max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
-        {/* Header Section */}
+        {/* Header */}
         <div className="bg-primary p-5 text-primary-foreground">
           <DialogHeader>
             <div className="flex items-center gap-3">
@@ -104,17 +95,17 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
 
         <ScrollArea className="flex-1 px-5 py-4">
           <div className="flex flex-col gap-4 pb-4">
-            {/* Account Type - Reduced height to h-9 */}
+            {/* Account Type */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                 <Wallet size={12} /> Account Type
               </Label>
               <select
                 className="w-full h-9 bg-muted/50 border-none rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary"
-                value={payload.account_type_id}
+                value={value.account_type_id}
                 onChange={(e) =>
                   onChange({
-                    ...payload,
+                    ...value,
                     account_type_id: Number(e.target.value),
                   })
                 }
@@ -128,7 +119,7 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
               </select>
             </div>
 
-            {/* Currency & Deposit - Reduced input size */}
+            {/* Currency & Deposit */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
@@ -137,9 +128,9 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
                 <Input
                   className="rounded-lg border-none bg-muted/50 h-9 text-xs"
                   placeholder="USD"
-                  value={payload.currency}
+                  value={value.currency}
                   onChange={(e) =>
-                    onChange({ ...payload, currency: e.target.value })
+                    onChange({ ...value, currency: e.target.value })
                   }
                 />
               </div>
@@ -151,10 +142,10 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
                   type="number"
                   className="rounded-lg border-none bg-muted/50 h-9 text-xs"
                   placeholder="0.00"
-                  value={payload.initial_deposit}
+                  value={value.initial_deposit}
                   onChange={(e) =>
                     onChange({
-                      ...payload,
+                      ...value,
                       initial_deposit: Number(e.target.value),
                     })
                   }
@@ -162,19 +153,16 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
               </div>
             </div>
 
-            {/* Account Owner */}
+            {/* Owner */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                 <UserCircle size={12} /> Account Owner
               </Label>
               <select
                 className="w-full h-9 bg-muted/50 border-none rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary"
-                value={payload.owner_user_id}
+                value={value.owner_user_id}
                 onChange={(e) =>
-                  onChange({
-                    ...payload,
-                    owner_user_id: Number(e.target.value),
-                  })
+                  onChange({ ...value, owner_user_id: Number(e.target.value) })
                 }
               >
                 <option value="">Select owner</option>
@@ -186,13 +174,11 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
               </select>
             </div>
 
-            {/* MULTI-SELECT USER LIST WITH SEARCH */}
+            {/* Multi-Select Users */}
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
-                <Users size={12} /> Assign Users ({payload.user_ids.length})
+                <Users size={12} /> Assign Users ({value.user_ids.length})
               </Label>
-
-              {/* Added Search Input */}
               <div className="relative">
                 <Search
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -213,13 +199,13 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
                       key={user.id}
                       onClick={() => toggleUser(user.id)}
                       className={`flex items-center gap-2.5 p-2 rounded-md cursor-pointer transition-colors ${
-                        payload.user_ids.includes(user.id)
+                        value.user_ids.includes(user.id)
                           ? "bg-primary/10 border-primary/20 border"
                           : "hover:bg-accent"
                       }`}
                     >
                       <Checkbox
-                        checked={payload.user_ids.includes(user.id)}
+                        checked={value.user_ids.includes(user.id)}
                         onCheckedChange={() => toggleUser(user.id)}
                         className="h-3.5 w-3.5"
                       />
@@ -256,7 +242,12 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
             </Button>
             <Button
               className="flex-[2] rounded-lg h-10 text-xs shadow-lg shadow-primary/20"
-              onClick={() => onConfirm(payload)}
+              onClick={() =>
+                onConfirm({
+                  ...value,
+                  parent_account_id: parentAccount?.id ?? null,
+                })
+              }
               disabled={loading}
             >
               {loading ? "Creating..." : "Create Account"}

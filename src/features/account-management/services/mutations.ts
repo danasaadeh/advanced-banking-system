@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { accountsApiService } from "./api";
+import { toast } from "@/shared/components/ui/sonner";
 import type { AccountStatus } from "../types/accounts.data";
-
 
 interface UpdateAccountStatusPayload {
   accountId: number | string;
   state: AccountStatus;
 }
-
 
 export const useUpdateAccountStatus = () => {
   const queryClient = useQueryClient();
@@ -17,14 +17,12 @@ export const useUpdateAccountStatus = () => {
       accountsApiService.updateAccountStatus(accountId, state),
     {
       onSuccess: (_, variables) => {
-       
         queryClient.invalidateQueries(["accounts"]);
-        console.log(`Account ${variables.accountId} status updated to ${variables.state}`);
+        toast.success(`Account ${variables.accountId} status updated to ${variables.state}`);
       },
-      onError: (err) => {
-        console.error("Failed to update account status:", err);
+      onError: (err: any) => {
+        toast.error(err.message || "Failed to update account status");
       },
-      
     }
   );
 };
