@@ -11,8 +11,11 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
 import type { Transaction } from "../types";
+import type { UserRole } from "../approvals/approval.types";
+import { transactionApprovalChain } from "../approvals/approval-chain";
 
 interface TransactionsTableProps {
+  userRole: UserRole;
   transactions: Transaction[];
   onViewDetails: (transaction: Transaction) => void;
   onApprove: (transaction: Transaction) => void;
@@ -24,7 +27,19 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   onViewDetails,
   onApprove,
   onReject,
+  userRole,
 }) => {
+  const canShowApprovalActions = (tx: Transaction) => {
+    if (tx.status !== "pending") return false;
+
+    const result = transactionApprovalChain.handle({
+      transaction: tx,
+      userRole,
+    });
+
+    return result.canApprove;
+  };
+
   const getStatusBadge = (status: Transaction["status"]) => {
     switch (status) {
       case "approved":
@@ -128,8 +143,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <Eye className="h-4 w-4" />
                   </Button>
 
-                  {/* Approve / Reject (only pending) */}
-                  {tx.status === "pending" && (
+                  {canShowApprovalActions(tx) && (
                     <>
                       <Button
                         variant="ghost"
