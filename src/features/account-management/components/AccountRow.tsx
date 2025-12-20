@@ -10,17 +10,10 @@ import {
   SelectItem,
 } from "@/shared/components/ui/select";
 import { ChevronRight, ChevronDown, Eye, Plus } from "lucide-react";
-import type {
-  Account,
-  Role,
-  AccountStatus,
-} from "@/features/account-management/types/accounts.data";
-import {
-  cn,
-  typeColors,
-  statusColors,
-} from "@/features/account-management/types/typeColors";
 import { Button } from "@/shared/components/ui/button";
+import { cn, typeColors, statusColors } from "../types/typeColors";
+import type { Account, Role, AccountStatus } from "../types/accounts.data";
+import { getStateBehavior } from "../services/accountStates";
 
 interface AccountRowProps {
   account: Account;
@@ -29,8 +22,8 @@ interface AccountRowProps {
   onChangeStatus: (id: number, status: AccountStatus) => void;
   onViewDetails: (accountId: number) => void;
   role: Role;
-  fetchingAccountId?: number | null; 
-  updatingAccountId?: number | null; 
+  fetchingAccountId?: number | null;
+  updatingAccountId?: number | null;
 }
 
 export const AccountRow: React.FC<AccountRowProps> = ({
@@ -45,11 +38,12 @@ export const AccountRow: React.FC<AccountRowProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(true);
   const isParent = Boolean(account.children?.length);
-const canAddSub = level === 0 && account.current_state.state !== "closed";
 
+  const stateBehavior = getStateBehavior(account.current_state.state);
+
+  const canAddSub = level === 0 && stateBehavior.canAddSubAccount;
   const canEditStatus =
-    (role === "admin" || role === "manager") &&
-    account.current_state.state !== "closed";
+    (role === "admin" || role === "manager") && stateBehavior.canEditStatus;
 
   return (
     <>
@@ -185,7 +179,6 @@ const canAddSub = level === 0 && account.current_state.state !== "closed";
                 <Plus className="h-4 w-4 mr-1" /> Add Sub-account
               </Button>
             )}
-            {/* Eye icon only for top-level accounts */}
             {level === 0 && (
               <Button
                 variant="ghost"

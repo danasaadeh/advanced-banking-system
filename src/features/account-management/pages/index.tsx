@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -13,7 +12,7 @@ import type {
   Account,
 } from "../types/accounts.data";
 
-import AccountsPagination from "@/features/account-management/components/AccountsPagenation";
+import AccountsPagination from "../components/AccountsPagenation";
 import AccountCreationDialog from "../components/AccountCreationDialog";
 import SubAccountDialog from "../components/SubAccountDialog";
 import AccountDetailsDialog from "../components/AccountDetailsDialog";
@@ -23,10 +22,10 @@ import {
   useAccounts,
   useAccount,
   useAccountCreationData,
-} from "@/features/account-management/services/queries";
-import { useUpdateAccountStatus } from "@/features/account-management/services/mutations";
-import { useCreateAccount } from "@/features/account-management/services/useCreateAccount";
-import { useCreateChildAccount } from "@/features/account-management/services/useCreateChildAccount";
+} from "../services/queries";
+import { useUpdateAccountStatus } from "../services/mutations";
+import { useCreateAccount } from "../services/useCreateAccount";
+import { useCreateChildAccount } from "../services/useCreateChildAccount";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -53,6 +52,7 @@ const AccountsPage: React.FC = () => {
     page: currentPage,
     perPage: ITEMS_PER_PAGE,
   });
+
   const accounts = data?.data ?? [];
   const totalItems = data?.pagination?.total ?? 0;
   const totalPages = data?.pagination?.last_page ?? 1;
@@ -78,18 +78,11 @@ const AccountsPage: React.FC = () => {
   const [viewAccountId, setViewAccountId] = useState<number | null>(null);
   const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
 
-  // Root account creation
-  const { mutate: createRootAccount, isLoading: creatingRoot } =
-    useCreateAccount();
+  const { mutate: createRootAccount } = useCreateAccount();
+  const { mutate: createChildAccount } = useCreateChildAccount();
 
-  // Child account creation
-  const { mutate: createChildAccount, isLoading: creatingChild } =
-    useCreateChildAccount();
-
-  // Unified handler for root vs child account
   const handleCreateAccount = (payload: CreateAccountPayload) => {
     if (parentAccount) {
-      // Child account
       createChildAccount(
         { ...payload, parent_account_id: parentAccount.id },
         {
@@ -108,7 +101,6 @@ const AccountsPage: React.FC = () => {
         }
       );
     } else {
-      // Root account
       createRootAccount(payload, {
         onSuccess: () => {
           setRootDialogOpen(false);
@@ -176,7 +168,7 @@ const AccountsPage: React.FC = () => {
       </div>
 
       {/* Accounts table */}
-      <Card className="p-4 ">
+      <Card className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -212,15 +204,13 @@ const AccountsPage: React.FC = () => {
       </Card>
 
       {/* Pagination */}
-     
-        <AccountsPagination
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={ITEMS_PER_PAGE}
-        />
-     
+      <AccountsPagination
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={ITEMS_PER_PAGE}
+      />
 
       {/* Dialogs */}
       <AccountCreationDialog
@@ -232,7 +222,7 @@ const AccountsPage: React.FC = () => {
         onConfirm={handleCreateAccount}
         users={users}
         accountTypes={accountTypes}
-        loading={creatingRoot || creationLoading}
+        loading={false}
       />
 
       {parentAccount && (
@@ -242,10 +232,10 @@ const AccountsPage: React.FC = () => {
           parentAccount={parentAccount}
           value={newAccount}
           onChange={setNewAccount}
-          onConfirm={handleCreateAccount} // Uses child account mutation
+          onConfirm={handleCreateAccount}
           users={users}
           accountTypes={accountTypes}
-          loading={creatingChild || creationLoading}
+          loading={false}
         />
       )}
 
