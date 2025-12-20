@@ -1,26 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// lib/axios.ts
 import axios from "axios";
 import { handleApiError } from "./axios-error-handler";
 import { getToken } from "@/features/auth/hooks/auth-state";
 
+// Ensure BASE_URL is loaded
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+if (!BASE_URL) {
+  console.error("VITE_BASE_URL is not defined!");
+}
 
 export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: BASE_URL || "", // fallback to empty string
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// ----------------------
-// REQUEST INTERCEPTOR
-// ----------------------
+// Request interceptor
 httpClient.interceptors.request.use(
   (config) => {
-    const token = getToken()
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // Add Accept-Language header
+    const token = getToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     config.headers["Accept-Language"] = navigator.language || "en";
 
     console.log("%c[API REQUEST]", "color: blue; font-weight: bold;", {
@@ -35,39 +36,25 @@ httpClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ----------------------
-// RESPONSE INTERCEPTOR
-// ----------------------
+// Response interceptor
 httpClient.interceptors.response.use(
   (response) => {
-   
     console.log("%c[API RESPONSE]", "color: green; font-weight: bold;", {
       url: response.config.url,
       method: response.config.method,
       status: response.status,
       data: response.data,
     });
-
     return response;
   },
-
   (error) => {
-    
     console.error("%c[API ERROR]", "color: red; font-weight: bold;", {
       url: error?.config?.url,
       method: error?.config?.method,
       status: error?.response?.status,
       response: error?.response?.data,
     });
-
-    // Auto logout on 401
-    if (error.response?.status === 401) {
-      // logoutHelper();
-    }
-
-    // Handle other errors
     handleApiError(error);
-
     return Promise.reject(error);
   }
 );

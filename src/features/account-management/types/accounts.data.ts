@@ -29,10 +29,13 @@ export interface AccountState {
 
 export interface CreateAccountPayload {
   account_type_id: number;
+  parent_account_id?: number | null;
   currency: string;
+  initial_deposit: number;
   user_ids: number[];
   owner_user_id: number;
 }
+
 
 /* ------------------ Account Models ------------------ */
 
@@ -78,6 +81,7 @@ export interface Feature {
   id: number;
   name: string;
 }
+
 
 export interface AccountCreationDataResponse {
   users: User[];
