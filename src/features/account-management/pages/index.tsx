@@ -1,22 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Search, ShieldCheck } from "lucide-react";
 import { Card } from "@/shared/components/ui/card";
+import { Loader, Search, ShieldCheck } from "lucide-react";
 
 import type { Role, CreateAccountPayload } from "../types/accounts.data";
+
 import AccountsPagination from "@/features/account-management/components/AccountsPagenation";
-import AccountDialog from "../components/AccountDialog";
+import AccountCreationDialog from "../components/AccountCreationDialog";
+import AccountDetailsDialog from "../components/AccountDetailsDialog";
+import { AccountTable } from "../components/AccountTable";
 
 import {
-  useAccount,
   useAccounts,
+  useAccount,
+  useAccountCreationData,
 } from "@/features/account-management/services/queries";
-import { AccountTable } from "../components/AccountTable";
 import { useUpdateAccountStatus } from "@/features/account-management/services/mutations";
-import AccountDetailsDialog from "../components/AccountDetailsDialog";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -24,56 +26,84 @@ const AccountsPage: React.FC = () => {
   const [role] = useState<Role>("manager");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentAccountId, setParentAccountId] = useState<number | null>(null);
-  const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(
-    null
-  ); // NEW
 
   const [newAccount, setNewAccount] = useState<CreateAccountPayload>({
     account_type_id: 1,
+    parent_account_id: null,
     currency: "USD",
-    user_ids: [],
+    initial_deposit: 1000,
+    user_ids: [1],
     owner_user_id: 1,
   });
 
+  // Fetch accounts
   const { data, isLoading, isError } = useAccounts({
     search,
     page: currentPage,
     perPage: ITEMS_PER_PAGE,
   });
 
-  const accounts = data?.data || [];
-  const totalItems = data?.pagination?.total || 0;
-  const totalPages = data?.pagination?.last_page || 1;
+  const accounts = data?.data ?? [];
+  const totalItems = data?.pagination?.total ?? 0;
+  const totalPages = data?.pagination?.last_page ?? 1;
 
-  const handleAddAccount = (parentId: number | null) => {
-    console.log("CREATE ACCOUNT PAYLOAD:", newAccount, "Parent ID:", parentId);
-    setDialogOpen(false);
-    setParentAccountId(null);
-  };
+  // Fetch creation data (users + account types)
+  const { data: creationData, isLoading: creationLoading } =
+    useAccountCreationData();
+
+  const users = creationData?.users ?? [];
+  const accountTypes = creationData?.account_types ?? [];
+
+  const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(
+    null
+  );
 
   const { mutate: updateStatus } = useUpdateAccountStatus();
-
   const handleChangeStatus = (accountId: number, newState: string) => {
-    setUpdatingAccountId(accountId); // start loading
+    setUpdatingAccountId(accountId);
     updateStatus(
       { accountId, state: newState as any },
-      {
-        onSettled: () => setUpdatingAccountId(null), // stop loading after success/fail
-      }
+      { onSettled: () => setUpdatingAccountId(null) }
     );
   };
 
   const [viewAccountId, setViewAccountId] = useState<number | null>(null);
   const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
 
-  const handleViewDetails = (accountId: number) => setViewAccountId(accountId);
+  // Handle creating new account
+  const handleCreateAccount = (payload: CreateAccountPayload) => {
+    console.log("CREATE ACCOUNT PAYLOAD:", payload);
+    // Here you can call API to submit account
+    setDialogOpen(false);
+    setParentAccountId(null);
+    // Reset to default example after creation
+    setNewAccount({
+      account_type_id: 1,
+      parent_account_id: null,
+      currency: "USD",
+      initial_deposit: 1000,
+      user_ids: [1],
+      owner_user_id: 1,
+    });
+  };
+
+  // Update parent_account_id when opening sub-account dialog
+  useEffect(() => {
+    if (parentAccountId !== null) {
+      setNewAccount((prev) => ({
+        ...prev,
+        parent_account_id: parentAccountId,
+      }));
+    }
+  }, [parentAccountId]);
 
   return (
     <div className="flex flex-col gap-4">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Accounts Management</h1>
           <p className="text-sm text-muted-foreground">
@@ -81,7 +111,7 @@ const AccountsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-muted/50 p-2 rounded-lg border">
+        <div className="flex items-center gap-3 bg-muted/50 p-2 rounded-lg border">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <span className="text-xs font-semibold capitalize">
             {role} portal
@@ -112,23 +142,25 @@ const AccountsPage: React.FC = () => {
         />
       </div>
 
-      {/* CARD */}
-      <Card className="p-4 min-h-[200px] flex items-center justify-center">
+      {/* TABLE */}
+      <Card className="p-4 min-h-[200px]">
         {isLoading ? (
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading accounts...</p>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading accounts...</p>
+            </div>
           </div>
         ) : isError ? (
-          <div className="text-center text-red-500">
+          <div className="text-center text-red-500 py-8">
             Failed to load accounts. Please try again.
           </div>
         ) : accounts.length === 0 ? (
-          <div className="text-center text-muted-foreground">
-            No accounts found.
-            <div className="text-sm mt-1">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No accounts found</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Try adjusting your search or filters
-            </div>
+            </p>
           </div>
         ) : (
           <AccountTable
@@ -138,10 +170,10 @@ const AccountsPage: React.FC = () => {
               setParentAccountId(acc.id);
               setDialogOpen(true);
             }}
-            onChangeStatus={handleChangeStatus} // pass handler
-            onViewDetails={handleViewDetails}
+            onChangeStatus={handleChangeStatus}
+            onViewDetails={setViewAccountId}
+            updatingAccountId={updatingAccountId}
             fetchingAccountId={viewAccountId}
-            updatingAccountId={updatingAccountId} // pass loading state
           />
         )}
       </Card>
@@ -157,15 +189,20 @@ const AccountsPage: React.FC = () => {
         />
       )}
 
-      {/* DIALOGS */}
-      <AccountDialog
+      {/* ACCOUNT CREATION DIALOG */}
+      <AccountCreationDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
         parentAccount={parentAccountId ? { id: parentAccountId } : null}
         value={newAccount}
         onChange={setNewAccount}
-        onConfirm={() => handleAddAccount(parentAccountId)}
+        onConfirm={handleCreateAccount}
+        users={users}
+        accountTypes={accountTypes}
+        loading={creationLoading}
       />
+
+      {/* ACCOUNT DETAILS DIALOG */}
       <AccountDetailsDialog
         account={accountDetails}
         open={!!viewAccountId}
