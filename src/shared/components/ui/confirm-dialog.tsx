@@ -46,7 +46,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <Button
           disabled={loading}
           onClick={onConfirm}
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90  text-primary-foreground"
           variant="destructive"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
