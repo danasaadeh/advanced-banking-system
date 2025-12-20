@@ -1,3 +1,4 @@
+// features/users/components/UserFormDialog.tsx
 import React, { useState } from "react";
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { toast } from "@/shared/components/ui/sonner";
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (userData: UserFormData, userId?: number) => Promise<{ success: boolean; message: string }>;
+  onSave: (userData: UserFormData, userId?: number) => Promise<any>;
   user?: User | null;
   mode: "create" | "edit";
 }
@@ -44,6 +45,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // ✅ فقط التحقق من الصحة يعرض toast هنا
     if (!formData.first_name || !formData.last_name || !formData.email || 
         !formData.phone || !formData.national_id || !formData.date_of_birth || 
         !formData.address || formData.roles.length === 0) {
@@ -55,20 +57,18 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
     
     try {
       const dataToSend = prepareSubmitData();
-      const result = await onSave(dataToSend, user?.id);
-
-      if (result.success) {
-        toast.success(result.message);
-        
-        setTimeout(() => {
-          resetForm();
-          onOpenChange(false);
-        }, 500);
-      } else {
-        toast.error(result.message || "Operation failed");
-      }
+      // ✅ الـ toast ستظهر من الـ facade
+      await onSave(dataToSend, user?.id);
+      
+      // إغلاق الديالوج بعد نجاح الطلب
+      setTimeout(() => {
+        resetForm();
+        onOpenChange(false);
+      }, 500);
+      
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      // ❌ لا حاجة لـ toast هنا، تم التعامل معه في الـ facade
+      console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
