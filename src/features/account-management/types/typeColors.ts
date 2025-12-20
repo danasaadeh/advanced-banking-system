@@ -8,6 +8,8 @@ export const typeColors: Record<AccountType["name"], string> = {
   Checking: "bg-blue-100 text-blue-700",
   Family: "bg-purple-100 text-purple-700",
   Investment: "bg-rose-100 text-rose-700",
+  Personal: "bg-yellow-100 text-yellow-700",   // added Personal
+  Business: "bg-indigo-100 text-indigo-700",   // added Business
 };
 
 /**

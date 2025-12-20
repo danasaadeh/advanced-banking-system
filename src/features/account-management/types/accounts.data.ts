@@ -8,7 +8,7 @@ export type AccountStatus = "active" | "frozen" | "suspended" | "closed";
 
 export interface AccountType {
   id: number;
-  name: "Savings" | "Checking" | "Family" | "Investment";
+  name: "Savings" | "Checking" | "Family" | "Investment" | "Personal" | "Business";
   description?: string;
 }
 
@@ -35,6 +35,14 @@ export interface CreateAccountPayload {
   user_ids: number[];
   owner_user_id: number;
 }
+
+export interface CreateAccountGroupPayload {
+  account_type_id: number;
+  currency: string;
+  user_ids: number[];
+  owner_user_id: number;
+}
+
 
 
 /* ------------------ Account Models ------------------ */

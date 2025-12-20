@@ -39,9 +39,13 @@ export const AccountRow: React.FC<AccountRowProps> = ({
   const [expanded, setExpanded] = useState(true);
   const isParent = Boolean(account.children?.length);
 
-  const stateBehavior = getStateBehavior(account.current_state.state);
-
-  const canAddSub = level === 0 && stateBehavior.canAddSubAccount;
+  // Safely get the account state
+  const state = account.current_state?.state ?? "active";
+  const stateBehavior = getStateBehavior(state);
+const canAddSub =
+  level === 0 &&
+  stateBehavior.canAddSubAccount &&
+  account.account_number?.startsWith("G-AC-");
   const canEditStatus =
     (role === "admin" || role === "manager") && stateBehavior.canEditStatus;
 
@@ -83,7 +87,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold text-sm">
-                  {account.account_number}
+                  {account.account_number ?? "-"}
                 </span>
               </div>
             </div>
@@ -94,19 +98,19 @@ export const AccountRow: React.FC<AccountRowProps> = ({
           <span
             className={cn(
               "px-4 py-1 rounded-full text-xs font-semibold",
-              typeColors[account.account_type.name]
+              typeColors[account.account_type?.name ?? "default"]
             )}
           >
-            {account.account_type.name}
+            {account.account_type?.name ?? "-"}
           </span>
         </TableCell>
 
         <TableCell className="font-mono text-xs text-muted-foreground">
-          {account.currency}
+          {account.currency ?? "-"}
         </TableCell>
 
         <TableCell className="text-right font-bold">
-          {account.balance.toLocaleString(undefined, {
+          {(account.balance ?? 0).toLocaleString(undefined, {
             minimumFractionDigits: 2,
           })}
         </TableCell>
@@ -116,7 +120,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto" />
           ) : (
             <Select
-              value={account.current_state?.state || "active"}
+              value={state}
               onValueChange={(v) =>
                 onChangeStatus(account.id, v as AccountStatus)
               }
@@ -125,7 +129,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
               <SelectTrigger
                 className={cn(
                   "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border focus:outline-none focus:ring-2 focus:ring-primary",
-                  statusColors[account.current_state?.state || "active"]
+                  statusColors[state]
                 )}
               >
                 <SelectValue />
@@ -149,17 +153,17 @@ export const AccountRow: React.FC<AccountRowProps> = ({
         </TableCell>
 
         <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-          {account.created_at}
+          {account.created_at ?? "-"}
         </TableCell>
 
         <TableCell className="text-xs text-muted-foreground">
-          {account.current_state?.state === "closed" ? (
+          {state === "closed" ? (
             <div className="flex flex-col">
               <span className="font-semibold">
-                Reason: {account.closed_reason || "-"}
+                Reason: {account.closed_reason ?? "-"}
               </span>
               <span className="text-[10px] text-gray-500">
-                Closed at: {account.closed_at || "-"}
+                Closed at: {account.closed_at ?? "-"}
               </span>
             </div>
           ) : (

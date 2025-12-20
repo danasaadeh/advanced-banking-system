@@ -17,11 +17,15 @@ export const useUpdateAccountStatus = () => {
       accountsApiService.updateAccountStatus(accountId, state),
     {
       onSuccess: (_, variables) => {
-        queryClient.invalidateQueries(["accounts"]);
-        toast.success(`Account ${variables.accountId} status updated to ${variables.state}`);
+        // Refetch all accounts
+        queryClient.invalidateQueries({ queryKey: ["accounts"] });
+
+        toast.success(
+          `Account ${variables.accountId} status updated to ${variables.state}`
+        );
       },
       onError: (err: any) => {
-        toast.error(err.message || "Failed to update account status");
+        toast.error(err?.response?.data?.message || err.message || "Failed to update account status");
       },
     }
   );

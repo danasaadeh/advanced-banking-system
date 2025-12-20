@@ -1,5 +1,11 @@
 import { httpClient } from "@/lib/axios";
-import type { AccountCreationDataResponse, AccountGroupResponse, AccountGroupsResponse, CreateAccountPayload } from "../types/accounts.data";
+import type {
+  AccountCreationDataResponse,
+  AccountGroupResponse,
+  AccountGroupsResponse,
+  CreateAccountPayload,
+  CreateAccountGroupPayload,
+} from "../types/accounts.data";
 
 class AccountsService {
   private baseUrl = "/accounts/groups";
@@ -25,9 +31,13 @@ class AccountsService {
   }
 
   async createAccount(payload: CreateAccountPayload) {
-    console.log("[AccountsService.createAccount] Payload:", payload); 
     const response = await httpClient.post(`/accounts/leaves`, payload);
-    console.log("[AccountsService.createAccount] Response:", response.data);
+    return response.data;
+  }
+
+  //  CREATE ACCOUNT GROUP
+  async createAccountGroup(payload: CreateAccountGroupPayload): Promise<AccountGroupResponse> {
+    const response = await httpClient.post<AccountGroupResponse>(this.baseUrl, payload);
     return response.data;
   }
 }

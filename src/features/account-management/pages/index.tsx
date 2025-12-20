@@ -10,6 +10,7 @@ import type {
   Role,
   CreateAccountPayload,
   Account,
+  CreateAccountGroupPayload,
 } from "../types/accounts.data";
 
 import AccountsPagination from "../components/AccountsPagenation";
@@ -17,6 +18,7 @@ import AccountCreationDialog from "../components/AccountCreationDialog";
 import SubAccountDialog from "../components/SubAccountDialog";
 import AccountDetailsDialog from "../components/AccountDetailsDialog";
 import { AccountTable } from "../components/AccountTable";
+import GroupAccountDialog from "../components/AccountGroupCreationDialog"; // new group dialog
 
 import {
   useAccounts,
@@ -26,6 +28,7 @@ import {
 import { useUpdateAccountStatus } from "../services/mutations";
 import { useCreateAccount } from "../services/useCreateAccount";
 import { useCreateChildAccount } from "../services/useCreateChildAccount";
+import { useCreateAccountGroup } from "../services/useCreateAccountGroup"; // new hook
 
 const ITEMS_PER_PAGE = 5;
 
@@ -34,10 +37,14 @@ const AccountsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // dialogs
   const [rootDialogOpen, setRootDialogOpen] = useState(false);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+
   const [parentAccount, setParentAccount] = useState<Account | null>(null);
 
+  // new account payload
   const [newAccount, setNewAccount] = useState<CreateAccountPayload>({
     account_type_id: 1,
     parent_account_id: null,
@@ -47,6 +54,15 @@ const AccountsPage: React.FC = () => {
     owner_user_id: 1,
   });
 
+  // new group payload
+  const [newGroup, setNewGroup] = useState<CreateAccountGroupPayload>({
+    account_type_id: 1,
+    currency: "USD",
+    user_ids: [1, 2],
+    owner_user_id: 1,
+  });
+
+  // fetch accounts
   const { data, isLoading, isError } = useAccounts({
     search,
     page: currentPage,
@@ -57,11 +73,12 @@ const AccountsPage: React.FC = () => {
   const totalItems = data?.pagination?.total ?? 0;
   const totalPages = data?.pagination?.last_page ?? 1;
 
-  const { data: creationData, isLoading: creationLoading } =
-    useAccountCreationData();
+  // creation data
+  const { data: creationData } = useAccountCreationData();
   const users = creationData?.users ?? [];
   const accountTypes = creationData?.account_types ?? [];
 
+  // account status
   const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(
     null
   );
@@ -75,11 +92,14 @@ const AccountsPage: React.FC = () => {
     );
   };
 
+  // view account details
   const [viewAccountId, setViewAccountId] = useState<number | null>(null);
   const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
 
+  // mutations
   const { mutate: createRootAccount } = useCreateAccount();
   const { mutate: createChildAccount } = useCreateChildAccount();
+  const { mutate: createGroupAccount } = useCreateAccountGroup();
 
   const handleCreateAccount = (payload: CreateAccountPayload) => {
     if (parentAccount) {
@@ -117,6 +137,20 @@ const AccountsPage: React.FC = () => {
     }
   };
 
+  const handleCreateGroup = (payload: CreateAccountGroupPayload) => {
+    createGroupAccount(payload, {
+      onSuccess: () => {
+        setGroupDialogOpen(false);
+        setNewGroup({
+          account_type_id: 1,
+          currency: "USD",
+          user_ids: [1, 2],
+          owner_user_id: 1,
+        });
+      },
+    });
+  };
+
   useEffect(() => {
     if (parentAccount) {
       setNewAccount((prev) => ({
@@ -136,11 +170,13 @@ const AccountsPage: React.FC = () => {
             Banking-grade hierarchical account management
           </p>
         </div>
+
         <div className="flex items-center gap-3 bg-muted/50 p-2 rounded-lg border">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <span className="text-xs font-semibold capitalize">
             {role} portal
           </span>
+
           <Button
             size="sm"
             onClick={() => {
@@ -149,6 +185,10 @@ const AccountsPage: React.FC = () => {
             }}
           >
             New Root Account
+          </Button>
+
+          <Button size="sm" onClick={() => setGroupDialogOpen(true)}>
+            New Root Group
           </Button>
         </div>
       </div>
@@ -189,7 +229,12 @@ const AccountsPage: React.FC = () => {
           </div>
         ) : (
           <AccountTable
-            accounts={accounts}
+            accounts={accounts.map((acc) => ({
+              // ensure default values to avoid `state` error
+              ...acc,
+              state: acc.state ?? "N/A",
+              balance: acc.balance ?? 0,
+            }))}
             role={role}
             onAddSubAccount={(acc) => {
               setParentAccount(acc);
@@ -238,6 +283,17 @@ const AccountsPage: React.FC = () => {
           loading={false}
         />
       )}
+
+      <GroupAccountDialog
+        open={groupDialogOpen}
+        setOpen={setGroupDialogOpen}
+        value={newGroup}
+        onChange={setNewGroup}
+        onConfirm={handleCreateGroup}
+        users={users} 
+        accountTypes={accountTypes}
+        loading={false}
+      />
 
       <AccountDetailsDialog
         account={accountDetails}
