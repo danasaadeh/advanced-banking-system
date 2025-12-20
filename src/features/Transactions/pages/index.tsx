@@ -11,6 +11,9 @@ import type { Transaction } from "../types";
 import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
 import { TransactionDetailsDialog } from "../components/trans-details-dialog";
 import { AddTransactionDialog } from "../components/add-trans-dialog";
+import { rolesStorage } from "@/features/auth/storage";
+import type { UserRole } from "../approvals/approval.types";
+import { resolveUserRole } from "../approvals/role-utils";
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
@@ -188,6 +191,10 @@ const TransactionsPage: React.FC = () => {
     });
   }, [search, type, status, direction, dateFrom, dateTo]);
 
+  const rawRoles = rolesStorage.get() as UserRole[] | null;
+
+  const userRole: UserRole = resolveUserRole(rawRoles);
+
   /* ---------------- PAGINATED DATA ---------------- */
   const totalItems = filteredTransactions.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -304,6 +311,7 @@ const TransactionsPage: React.FC = () => {
 
       {/* ---------------- TABLE ---------------- */}
       <TransactionsTable
+        userRole={userRole}
         transactions={paginatedTransactions}
         onApprove={handleApprove}
         onReject={handleReject}
