@@ -1,5 +1,6 @@
 import type { ApprovalContext, ApprovalResult } from "../approval.types";
 
+//base abstract handler
 export abstract class TransactionApprovalHandler {
   protected next?: TransactionApprovalHandler;
 
