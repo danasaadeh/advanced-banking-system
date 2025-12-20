@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { useActivateUser, useDeactivateUser, useCreateUser, useUpdateUser } from "../services/user.mutations";
 import type { User, UserFormData } from "../types/user.types";
+import { queryClient } from "@/lib/query-facade";
 
 export const useUserActions = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -42,37 +44,46 @@ export const useUserActions = () => {
     setShowDialog(true);
   };
 
-  const executeAction = () => {
+  const executeAction = async () => {
     if (!selectedUser || !actionType) return;
 
-    switch (actionType) {
-      case "activate":
-        activateUser.mutate({ userId: selectedUser.id });
-        break;
-      case "deactivate":
-        deactivateUser.mutate({ userId: selectedUser.id });
-        break;
-    }
+    try {
+      switch (actionType) {
+        case "activate":
+          await activateUser.mutateAsync(selectedUser.id); 
+          break;
+        case "deactivate":
+          await deactivateUser.mutateAsync(selectedUser.id); 
+          break;
+      }
 
-    setShowDialog(false);
-    setSelectedUser(null);
-    setActionType(null);
+      setShowDialog(false);
+      setSelectedUser(null);
+      setActionType(null);
+      
+      // ✅ إعادة جلب البيانات تلقائياً بعد النجاح
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+      }, 300);
+      
+    } catch (error) {
+      console.error("Action failed:", error);
+    }
   };
 
-  const handleSaveUser = async (userData: UserFormData, userId?: number): Promise<{ success: boolean; message: string }> => {
+  const handleSaveUser = async (userData: UserFormData, userId?: number) => {
     try {
+      let result;
       if (userId) {
-        await updateUser.mutateAsync({ userId, userData });
-        return { success: true, message: "User updated successfully" };
+        result = await updateUser.mutateAsync({ userId, userData });
       } else {
-        await createUser.mutateAsync(userData);
-        return { success: true, message: "User created successfully" };
+        result = await createUser.mutateAsync(userData);
       }
-    } catch (error: any) {
-      return { 
-        success: false, 
-        message: error.message || "Operation failed" 
-      };
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+      }, 300);
+      
+      return result;
     } finally {
       setShowDialog(false);
       setSelectedUser(null);

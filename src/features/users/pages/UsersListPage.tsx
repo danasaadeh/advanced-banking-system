@@ -1,17 +1,17 @@
-// features/users/pages/UsersListPage.tsx
-import React from "react";
-import { Plus } from "lucide-react";
+
+import React, { useEffect } from "react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { useApiQuery } from "@/lib/query-facade";
+import { userApiService } from "../services/user.api";
 import { useUsersFilters } from "../hooks/useUsersFilters";
 import { useUserActions } from "../hooks/useUserActions";
-import { useUsers } from "../services/user.queries";
 import { UsersTable } from "../components/UsersTable";
 import { UsersFilters } from "../components/UsersFilters";
 import { UserDetailsDialog } from "../components/UserDetailsDialog";
 import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
 import { UserFormDialog } from "../components/UserFormDialog";
-import { Search } from "lucide-react";
 import { UsersPagination } from "../components/UsersPagination";
 
 const UsersListPage: React.FC = () => {
@@ -39,16 +39,25 @@ const UsersListPage: React.FC = () => {
     getActionText,
     getActionDescription,
     isLoading,
-    isCreating,
-    isUpdating,
   } = useUserActions();
-
-  const { data, isLoading: isLoadingUsers, isError } = useUsers({
-    search: searchQuery,
-    role: selectedRole,
-    page: currentPage,
-    perPage: 10,
+  const { 
+    data, 
+    isLoading: isLoadingUsers, 
+    isError,
+    refetch
+  } = useApiQuery({
+    key: ["users", searchQuery, selectedRole, currentPage, 10],
+    fetcher: () => userApiService.getUsers(searchQuery, selectedRole, currentPage, 10),
   });
+  useEffect(() => {
+    if (!showDialog) {
+      const timer = setTimeout(() => {
+        refetch();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showDialog, refetch]);
 
   const users = data?.data || [];
   const pagination = data?.pagination;
@@ -86,7 +95,7 @@ const UsersListPage: React.FC = () => {
 
       {/* ---------------- SEARCH + FILTERS ---------------- */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-        {/* Search - نفس عرض صفحة المعاملات */}
+        {/* Search */}
         <div className="relative w-full lg:max-w-sm">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -97,7 +106,7 @@ const UsersListPage: React.FC = () => {
           />
         </div>
 
-        {/* Filters - بجانب السيرش */}
+        {/* Filters */}
         <UsersFilters
           selectedRole={selectedRole}
           onRoleChange={(value) => {
@@ -160,7 +169,7 @@ const UsersListPage: React.FC = () => {
         open={actionType === "view" && showDialog}
         onOpenChange={setShowDialog}
         user={actionType === "view" ? selectedUser : null}
-        onEdit={handleEditFromDetails} 
+        onEdit={handleEditFromDetails}
       />
 
       <UserFormDialog
@@ -168,7 +177,6 @@ const UsersListPage: React.FC = () => {
         onOpenChange={setShowDialog}
         onSave={handleSaveUser}
         user={selectedUser}
-        isLoading={actionType === "create" ? isCreating : isUpdating}
         mode={actionType === "create" ? "create" : "edit"}
       />
 
