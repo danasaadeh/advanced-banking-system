@@ -43,6 +43,11 @@ const AccountsPage: React.FC = () => {
 
   const [parentAccount, setParentAccount] = useState<Account | null>(null);
 
+  /* ---------------- loading states (FIX) ---------------- */
+  const [creatingRoot, setCreatingRoot] = useState(false);
+  const [creatingSub, setCreatingSub] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+
   /* ---------------- payloads ---------------- */
   const [newAccount, setNewAccount] = useState<CreateAccountPayload>({
     account_type_id: 1,
@@ -96,9 +101,10 @@ const AccountsPage: React.FC = () => {
   /* ---------------- FACTORY ---------------- */
   const { create: createAccount } = useAccountCreationFactory();
 
-  /* ---------------- handlers ---------------- */
+  /* ---------------- handlers (FIXED) ---------------- */
   const handleCreateAccount = (payload: CreateAccountPayload) => {
     if (parentAccount) {
+      setCreatingSub(true);
       createAccount(
         "CHILD",
         { ...payload, parent_account_id: parentAccount.id },
@@ -115,9 +121,11 @@ const AccountsPage: React.FC = () => {
               owner_user_id: 1,
             });
           },
+          onSettled: () => setCreatingSub(false),
         }
       );
     } else {
+      setCreatingRoot(true);
       createAccount("ROOT", payload, {
         onSuccess: () => {
           setRootDialogOpen(false);
@@ -130,11 +138,13 @@ const AccountsPage: React.FC = () => {
             owner_user_id: 1,
           });
         },
+        onSettled: () => setCreatingRoot(false),
       });
     }
   };
 
   const handleCreateGroup = (payload: CreateAccountGroupPayload) => {
+    setCreatingGroup(true);
     createAccount("GROUP", payload, {
       onSuccess: () => {
         setGroupDialogOpen(false);
@@ -145,6 +155,7 @@ const AccountsPage: React.FC = () => {
           owner_user_id: 1,
         });
       },
+      onSettled: () => setCreatingGroup(false),
     });
   };
 
@@ -157,7 +168,7 @@ const AccountsPage: React.FC = () => {
     }
   }, [parentAccount]);
 
-  /* ---------------- UI (UNCHANGED) ---------------- */
+  /* ---------------- UI ---------------- */
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -209,8 +220,10 @@ const AccountsPage: React.FC = () => {
       <Card className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading Accounts...</p>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading Accounts...</p>
+            </div>
           </div>
         ) : isError ? (
           <div className="text-center text-red-500 py-8">
@@ -248,6 +261,7 @@ const AccountsPage: React.FC = () => {
         itemsPerPage={ITEMS_PER_PAGE}
       />
 
+      {/* Dialogs */}
       <AccountCreationDialog
         open={rootDialogOpen}
         setOpen={setRootDialogOpen}
@@ -257,7 +271,7 @@ const AccountsPage: React.FC = () => {
         onConfirm={handleCreateAccount}
         users={users}
         accountTypes={accountTypes}
-        loading={false}
+        loading={creatingRoot}
       />
 
       {parentAccount && (
@@ -270,7 +284,7 @@ const AccountsPage: React.FC = () => {
           onConfirm={handleCreateAccount}
           users={users}
           accountTypes={accountTypes}
-          loading={false}
+          loading={creatingSub}
         />
       )}
 
@@ -282,7 +296,7 @@ const AccountsPage: React.FC = () => {
         onConfirm={handleCreateGroup}
         users={users}
         accountTypes={accountTypes}
-        loading={false}
+        loading={creatingGroup}
       />
 
       <AccountDetailsDialog

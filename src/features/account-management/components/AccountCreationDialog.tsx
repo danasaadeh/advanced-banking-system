@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   PlusCircle,
   Search,
+  Loader2,
 } from "lucide-react";
 
 import type {
@@ -30,6 +31,7 @@ import type {
   User,
   AccountType,
 } from "@/features/account-management/types/accounts.data";
+import { CURRENCIES } from "../utilites";
 
 interface AccountCreationDialogProps {
   open: boolean;
@@ -125,15 +127,22 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <Coins size={12} /> Currency
                 </Label>
-                <Input
-                  className="rounded-lg border-none bg-muted/50 h-9 text-xs"
-                  placeholder="USD"
+                <select
+                  className="w-full h-9 bg-muted/50 border-none rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary"
                   value={value.currency}
                   onChange={(e) =>
                     onChange({ ...value, currency: e.target.value })
                   }
-                />
+                >
+                  <option value="">Select currency...</option>
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <ArrowUpRight size={12} /> Deposit
@@ -241,7 +250,7 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
               Cancel
             </Button>
             <Button
-              className="flex-[2] rounded-lg h-10 text-xs shadow-lg shadow-primary/20"
+              className="flex-[2] rounded-lg h-10 text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               onClick={() =>
                 onConfirm({
                   ...value,
@@ -250,6 +259,7 @@ const AccountCreationDialog: React.FC<AccountCreationDialogProps> = ({
               }
               disabled={loading}
             >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Creating..." : "Create Account"}
             </Button>
           </div>
