@@ -14,13 +14,14 @@ import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import { Users, UserCircle, Coins, PlusCircle, Search } from "lucide-react";
+import { Users, UserCircle, Coins, PlusCircle, Search, Loader2 } from "lucide-react";
 
 import type {
   CreateAccountGroupPayload,
   User,
   AccountType,
 } from "../types/accounts.data";
+import { CURRENCIES } from "../utilites";
 
 interface AccountGroupCreationDialogProps {
   open: boolean;
@@ -114,14 +115,21 @@ const AccountGroupCreationDialog: React.FC<AccountGroupCreationDialogProps> = ({
               <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                 <Coins size={12} /> Currency
               </Label>
-              <Input
-                className="rounded-lg border-none bg-muted/50 h-9 text-xs"
-                placeholder="USD"
+              <select
+                className="w-full h-9 bg-muted/50 border-none rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary"
                 value={value.currency}
+                disabled={loading || !value.currency}
                 onChange={(e) =>
                   onChange({ ...value, currency: e.target.value })
                 }
-              />
+              >
+                <option value="">Select currency...</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} — {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Owner */}
@@ -216,6 +224,8 @@ const AccountGroupCreationDialog: React.FC<AccountGroupCreationDialogProps> = ({
               onClick={() => onConfirm(value)}
               disabled={loading}
             >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              
               {loading ? "Creating..." : "Create Group"}
             </Button>
           </div>

@@ -17,6 +17,7 @@ import {
   PlusCircle,
   Search,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import type {
   CreateAccountPayload,
@@ -244,6 +245,7 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
             onClick={() => onConfirm(payload)}
             disabled={loading}
           >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? "Creating..." : "Create Sub-Account"}
           </Button>
         </div>
