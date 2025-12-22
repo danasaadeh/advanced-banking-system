@@ -32,7 +32,24 @@ import { useAccountCreationFactory } from "../services/accounts.factory";
 const ITEMS_PER_PAGE = 5;
 
 const AccountsPage: React.FC = () => {
-  const [role] = useState<Role>("manager");
+  /* ---------------- role and user_id ---------------- */
+  const [role, setRole] = useState<Role>("customer");
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const storedRoles = localStorage.getItem("roles");
+    if (storedRoles) {
+      const parsed = JSON.parse(storedRoles) as string[];
+      setRole(parsed[0].toLowerCase() as Role);
+    }
+
+    const storedId = localStorage.getItem("user_id");
+    if (storedId) setUserId(Number(storedId));
+  }, []);
+
+  const isCustomer = role === "customer";
+
+  /* ---------------- search & pagination ---------------- */
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -40,10 +57,9 @@ const AccountsPage: React.FC = () => {
   const [rootDialogOpen, setRootDialogOpen] = useState(false);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-
   const [parentAccount, setParentAccount] = useState<Account | null>(null);
 
-  /* ---------------- loading states (FIX) ---------------- */
+  /* ---------------- loading states ---------------- */
   const [creatingRoot, setCreatingRoot] = useState(false);
   const [creatingSub, setCreatingSub] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
@@ -54,19 +70,23 @@ const AccountsPage: React.FC = () => {
     parent_account_id: null,
     currency: "USD",
     initial_deposit: 1000,
-    user_ids: [1],
-    owner_user_id: 1,
+    user_ids: [],
+    owner_user_id: 0, // placeholder
   });
 
   const [newGroup, setNewGroup] = useState<CreateAccountGroupPayload>({
     account_type_id: 1,
     currency: "USD",
-    user_ids: [1, 2],
-    owner_user_id: 1,
+    user_ids: [],
+    owner_user_id: 0, // placeholder
   });
 
-  /* ---------------- data ---------------- */
-  const { data, isLoading, isError } = useAccounts({
+  /* ---------------- accounts data ---------------- */
+  const {
+    data,
+    isLoading: isAccountsLoading,
+    isError: isAccountsError,
+  } = useAccounts({
     search,
     page: currentPage,
     perPage: ITEMS_PER_PAGE,
@@ -76,7 +96,13 @@ const AccountsPage: React.FC = () => {
   const totalItems = data?.pagination?.total ?? 0;
   const totalPages = data?.pagination?.last_page ?? 1;
 
-  const { data: creationData } = useAccountCreationData();
+  /* ---------------- creation data ---------------- */
+  const {
+    data: creationData,
+    isLoading: isCreationLoading,
+    isError: isCreationError,
+  } = useAccountCreationData();
+
   const users = creationData?.users ?? [];
   const accountTypes = creationData?.account_types ?? [];
 
@@ -87,6 +113,8 @@ const AccountsPage: React.FC = () => {
   const { mutate: updateStatus } = useUpdateAccountStatus();
 
   const handleChangeStatus = (accountId: number, newState: string) => {
+    if (isCustomer) return;
+
     setUpdatingAccountId(accountId);
     updateStatus(
       { accountId, state: newState as any },
@@ -98,11 +126,13 @@ const AccountsPage: React.FC = () => {
   const [viewAccountId, setViewAccountId] = useState<number | null>(null);
   const { data: accountDetails } = useAccount(viewAccountId ?? undefined);
 
-  /* ---------------- FACTORY ---------------- */
+  /* ---------------- factory ---------------- */
   const { create: createAccount } = useAccountCreationFactory();
 
-  /* ---------------- handlers (FIXED) ---------------- */
+  /* ---------------- handlers ---------------- */
   const handleCreateAccount = (payload: CreateAccountPayload) => {
+    if (isCustomer) return;
+
     if (parentAccount) {
       setCreatingSub(true);
       createAccount(
@@ -112,14 +142,6 @@ const AccountsPage: React.FC = () => {
           onSuccess: () => {
             setSubDialogOpen(false);
             setParentAccount(null);
-            setNewAccount({
-              account_type_id: 1,
-              parent_account_id: null,
-              currency: "USD",
-              initial_deposit: 1000,
-              user_ids: [1],
-              owner_user_id: 1,
-            });
           },
           onSettled: () => setCreatingSub(false),
         }
@@ -127,46 +149,49 @@ const AccountsPage: React.FC = () => {
     } else {
       setCreatingRoot(true);
       createAccount("ROOT", payload, {
-        onSuccess: () => {
-          setRootDialogOpen(false);
-          setNewAccount({
-            account_type_id: 1,
-            parent_account_id: null,
-            currency: "USD",
-            initial_deposit: 1000,
-            user_ids: [1],
-            owner_user_id: 1,
-          });
-        },
+        onSuccess: () => setRootDialogOpen(false),
         onSettled: () => setCreatingRoot(false),
       });
     }
   };
 
   const handleCreateGroup = (payload: CreateAccountGroupPayload) => {
+    if (isCustomer) return;
+
     setCreatingGroup(true);
     createAccount("GROUP", payload, {
-      onSuccess: () => {
-        setGroupDialogOpen(false);
-        setNewGroup({
-          account_type_id: 1,
-          currency: "USD",
-          user_ids: [1, 2],
-          owner_user_id: 1,
-        });
-      },
+      onSuccess: () => setGroupDialogOpen(false),
       onSettled: () => setCreatingGroup(false),
     });
   };
 
-  useEffect(() => {
-    if (parentAccount) {
-      setNewAccount((prev) => ({
-        ...prev,
-        parent_account_id: parentAccount.id,
-      }));
-    }
-  }, [parentAccount]);
+  /* ---------------- filter accounts for customer ---------------- */
+  const filteredAccounts =
+    isCustomer && userId
+      ? accounts.filter((acc) => acc.users?.some((u: any) => u.id === userId))
+      : accounts;
+
+  const accountsWithOwnerFlag = filteredAccounts.map((acc: any) => ({
+    ...acc,
+    isOwner: acc.users?.some((u: any) => u.id === userId && u.is_owner),
+  }));
+
+  /* ---------------- GLOBAL LOADING / ERROR ---------------- */
+  if (isCreationLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        Loading configuration data...
+      </div>
+    );
+  }
+
+  if (isCreationError) {
+    return (
+      <div className="flex items-center justify-center h-96 text-red-500">
+        Failed to load configuration data.
+      </div>
+    );
+  }
 
   /* ---------------- UI ---------------- */
   return (
@@ -186,19 +211,16 @@ const AccountsPage: React.FC = () => {
             {role} portal
           </span>
 
-          <Button
-            size="sm"
-            onClick={() => {
-              setParentAccount(null);
-              setRootDialogOpen(true);
-            }}
-          >
-            New Root Account
-          </Button>
-
-          <Button size="sm" onClick={() => setGroupDialogOpen(true)}>
-            New Root Group
-          </Button>
+          {!isCustomer && (
+            <>
+              <Button size="sm" onClick={() => setRootDialogOpen(true)}>
+                New Root Account
+              </Button>
+              <Button size="sm" onClick={() => setGroupDialogOpen(true)}>
+                New Root Group
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -216,35 +238,32 @@ const AccountsPage: React.FC = () => {
         />
       </div>
 
-      {/* Accounts table */}
+      {/* Accounts Table */}
       <Card className="p-4">
-        {isLoading ? (
+        {isAccountsLoading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading Accounts...</p>
-            </div>
+            <div className="animate-spin h-10 w-10 rounded-full border-b-2 border-primary" />
           </div>
-        ) : isError ? (
+        ) : isAccountsError ? (
           <div className="text-center text-red-500 py-8">
-            Failed to load accounts. Please try again.
+            Failed to load accounts.
           </div>
-        ) : accounts.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No accounts found</p>
+        ) : accountsWithOwnerFlag.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No accounts found
           </div>
         ) : (
           <AccountTable
-            accounts={accounts.map((acc) => ({
-              ...acc,
-              state: acc.state ?? "N/A",
-              balance: acc.balance ?? 0,
-            }))}
+            accounts={accountsWithOwnerFlag}
             role={role}
-            onAddSubAccount={(acc) => {
-              setParentAccount(acc);
-              setSubDialogOpen(true);
-            }}
+            onAddSubAccount={
+              isCustomer
+                ? undefined
+                : (acc) => {
+                    setParentAccount(acc);
+                    setSubDialogOpen(true);
+                  }
+            }
             onChangeStatus={handleChangeStatus}
             onViewDetails={setViewAccountId}
             updatingAccountId={updatingAccountId}
@@ -261,43 +280,47 @@ const AccountsPage: React.FC = () => {
         itemsPerPage={ITEMS_PER_PAGE}
       />
 
-      {/* Dialogs */}
-      <AccountCreationDialog
-        open={rootDialogOpen}
-        setOpen={setRootDialogOpen}
-        parentAccount={null}
-        value={newAccount}
-        onChange={setNewAccount}
-        onConfirm={handleCreateAccount}
-        users={users}
-        accountTypes={accountTypes}
-        loading={creatingRoot}
-      />
+      {/* Dialogs (NON-CUSTOMER ONLY) */}
+      {!isCustomer && (
+        <>
+          <AccountCreationDialog
+            open={rootDialogOpen}
+            setOpen={setRootDialogOpen}
+            parentAccount={null}
+            value={newAccount}
+            onChange={setNewAccount}
+            onConfirm={handleCreateAccount}
+            users={users}
+            accountTypes={accountTypes}
+            loading={creatingRoot}
+          />
 
-      {parentAccount && (
-        <SubAccountDialog
-          open={subDialogOpen}
-          setOpen={setSubDialogOpen}
-          parentAccount={parentAccount}
-          value={newAccount}
-          onChange={setNewAccount}
-          onConfirm={handleCreateAccount}
-          users={users}
-          accountTypes={accountTypes}
-          loading={creatingSub}
-        />
+          {parentAccount && (
+            <SubAccountDialog
+              open={subDialogOpen}
+              setOpen={setSubDialogOpen}
+              parentAccount={parentAccount}
+              value={newAccount}
+              onChange={setNewAccount}
+              onConfirm={handleCreateAccount}
+              users={users}
+              accountTypes={accountTypes}
+              loading={creatingSub}
+            />
+          )}
+
+          <GroupAccountDialog
+            open={groupDialogOpen}
+            setOpen={setGroupDialogOpen}
+            value={newGroup}
+            onChange={setNewGroup}
+            onConfirm={handleCreateGroup}
+            users={users}
+            accountTypes={accountTypes}
+            loading={creatingGroup}
+          />
+        </>
       )}
-
-      <GroupAccountDialog
-        open={groupDialogOpen}
-        setOpen={setGroupDialogOpen}
-        value={newGroup}
-        onChange={setNewGroup}
-        onConfirm={handleCreateGroup}
-        users={users}
-        accountTypes={accountTypes}
-        loading={creatingGroup}
-      />
 
       <AccountDetailsDialog
         account={accountDetails}

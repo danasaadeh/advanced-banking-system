@@ -17,21 +17,23 @@ import type {
 } from "@/features/account-management/types/accounts.data";
 import { User, Layers, ShieldCheck, Fingerprint } from "lucide-react";
 
-// StatusBadge component moved outside
+/* ---------------- StatusBadge ---------------- */
 const StatusBadge: React.FC<{ state: string }> = ({ state }) => (
   <Badge
-    variant={state === "active" ? "default" : "destructive"}
+    variant="outline"
     className={`capitalize font-bold ${
       state === "active"
         ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-        : ""
+        : state === "frozen"
+        ? "bg-blue-500/10 text-blue-600"
+        : "bg-gray-500/10 text-gray-500"
     }`}
   >
     {state}
   </Badge>
 );
 
-// UserCard component moved outside
+/* ---------------- UserCard ---------------- */
 const UserCard: React.FC<{ user: Account["users"][0] }> = ({ user }) => (
   <div className="flex items-center justify-between p-3 rounded-xl border bg-card/50">
     <div className="flex items-center gap-3">
@@ -54,19 +56,26 @@ const UserCard: React.FC<{ user: Account["users"][0] }> = ({ user }) => (
   </div>
 );
 
+/* ---------------- Props ---------------- */
 interface Props {
   account: AccountGroupResponse | undefined;
   open: boolean;
   setOpen: (val: boolean) => void;
 }
 
+/* ---------------- Dialog ---------------- */
 const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
   if (!account?.data) return null;
+
   const acc = account.data;
+
+  // ✅ normalize state (VERY IMPORTANT)
+  const accountState = acc.current_state?.state ?? "inactive";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+        {/* ---------- Header ---------- */}
         <div className="bg-black dark:bg-zinc-800 p-6 text-white">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -83,14 +92,15 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                   </p>
                 </div>
               </div>
-              <StatusBadge state={acc.current_state.state} />
+              <StatusBadge state={accountState} />
             </div>
           </DialogHeader>
         </div>
 
+        {/* ---------- Content ---------- */}
         <ScrollArea className="max-h-[80vh]">
           <div className="p-6 space-y-8">
-            {/* Quick Stats */}
+            {/* ---------- Quick Stats ---------- */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-muted/30 border">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
@@ -105,17 +115,19 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                   </span>
                 </div>
               </div>
+
               <div className="p-4 rounded-2xl bg-muted/30 border">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
                   Type
                 </p>
                 <p className="text-sm font-semibold">
-                  {acc.account_type?.name}
+                  {acc.account_type?.name ?? "-"}
                 </p>
                 <p className="text-[10px] text-muted-foreground truncate">
-                  {acc.account_type?.description}
+                  {acc.account_type?.description ?? "-"}
                 </p>
               </div>
+
               <div className="p-4 rounded-2xl bg-muted/30 border">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
                   Created
@@ -129,7 +141,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
               </div>
             </div>
 
-            {/* Team Members */}
+            {/* ---------- Users ---------- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
@@ -145,7 +157,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                 </div>
               </div>
 
-              {/* Features */}
+              {/* ---------- Features ---------- */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
                   <Layers className="w-4 h-4 text-primary" />
@@ -173,7 +185,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
               </div>
             </div>
 
-            {/* Sub-Accounts */}
+            {/* ---------- Sub Accounts ---------- */}
             {acc.children.length > 0 && (
               <div className="space-y-4 pt-2">
                 <Separator />
@@ -183,14 +195,15 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                     Hierarchy (Sub-Accounts)
                   </h3>
                 </div>
+
                 <div className="grid grid-cols-1 gap-2">
                   {acc.children.map((child) => (
                     <div
                       key={child.id}
-                      className="group flex items-center justify-between p-4 rounded-2xl border bg-muted/10 hover:bg-muted/30 transition-all cursor-default"
+                      className="group flex items-center justify-between p-4 rounded-2xl border bg-muted/10 hover:bg-muted/30 transition-all"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="p-2 bg-background rounded-lg border group-hover:border-primary/50 transition-colors">
+                        <div className="p-2 bg-background rounded-lg border group-hover:border-primary/50">
                           <Layers className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                         </div>
                         <div>
@@ -199,7 +212,7 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                              {child.account_type.name}
+                              {child.account_type?.name ?? "-"}
                             </span>
                             <span className="text-xs font-semibold text-green-600">
                               {child.balance} {child.currency}
@@ -207,7 +220,11 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                           </div>
                         </div>
                       </div>
-                      <StatusBadge state={child.current_state.state} />
+
+                      {/* ✅ safe child state */}
+                      <StatusBadge
+                        state={child.current_state?.state ?? "inactive"}
+                      />
                     </div>
                   ))}
                 </div>

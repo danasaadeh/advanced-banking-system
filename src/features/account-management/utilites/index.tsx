@@ -1,7 +1,9 @@
- export const CURRENCIES = [
+export const CURRENCIES = [
   { code: "USD", name: "US Dollar" },
   { code: "EUR", name: "Euro" },
   { code: "GBP", name: "British Pound" },
   { code: "JPY", name: "Japanese Yen" },
   { code: "CAD", name: "Canadian Dollar" },
+  { code: "SYP", name: "Syrian Pound" },
+  { code: "TRY", name: "Turkish Lira" },
 ];

@@ -39,16 +39,31 @@ export const AccountRow: React.FC<AccountRowProps> = ({
   const [expanded, setExpanded] = useState(true);
   const isParent = Boolean(account.children?.length);
 
-  // Safely get the account state
-  const state = account.current_state?.state ?? "active";
+  /* ---------------- state ---------------- */
+  const state: AccountStatus = account.current_state?.state ?? "active";
   const stateBehavior = getStateBehavior(state);
-const canAddSub =
-  level === 0 &&
-  stateBehavior.canAddSubAccount &&
-  account.account_number?.startsWith("G-AC-");
-  const canEditStatus =
-    (role === "admin" || role === "manager") && stateBehavior.canEditStatus;
+  const isCustomer = role === "customer";
 
+  /* ---------------- permissions ---------------- */
+
+  // Add sub-account (Customer NOT allowed)
+  const canAddSub =
+    !isCustomer &&
+    level === 0 &&
+    stateBehavior.canAddSubAccount &&
+    account.account_number?.startsWith("G-AC-");
+
+  // Allowed statuses per role
+  const allowedStatuses: AccountStatus[] = isCustomer
+    ? ["active", "frozen"]
+    : ["active", "frozen", "suspended", "closed"];
+
+  // Can edit status
+  const canEditStatus = isCustomer
+    ? state !== "frozen" // Customer can only change TO frozen
+    : (role === "admin" || role === "manager") && stateBehavior.canEditStatus;
+
+  /* ---------------- UI ---------------- */
   return (
     <>
       <TableRow
@@ -85,11 +100,9 @@ const canAddSub =
                   </Button>
                 )}
               </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">
-                  {account.account_number ?? "-"}
-                </span>
-              </div>
+              <span className="font-semibold text-sm">
+                {account.account_number ?? "-"}
+              </span>
             </div>
           </div>
         </TableCell>
@@ -115,34 +128,32 @@ const canAddSub =
           })}
         </TableCell>
 
+        {/* -------- Status -------- */}
         <TableCell>
           {updatingAccountId === account.id ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto" />
           ) : (
             <Select
               value={state}
+              disabled={!canEditStatus}
               onValueChange={(v) =>
                 onChangeStatus(account.id, v as AccountStatus)
               }
-              disabled={!canEditStatus}
             >
               <SelectTrigger
                 className={cn(
-                  "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border focus:outline-none focus:ring-2 focus:ring-primary",
+                  "h-9 w-[120px] rounded-lg text-xs font-medium shadow-sm border",
                   statusColors[state]
                 )}
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-lg shadow-lg">
-                {["active", "frozen", "suspended", "closed"].map((s) => (
+                {allowedStatuses.map((s) => (
                   <SelectItem
                     key={s}
                     value={s}
-                    className={cn(
-                      "rounded-lg px-6 py-1",
-                      statusColors[s as AccountStatus]
-                    )}
+                    className={cn("rounded-lg px-6 py-1", statusColors[s])}
                   >
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </SelectItem>
@@ -171,6 +182,7 @@ const canAddSub =
           )}
         </TableCell>
 
+        {/* -------- Actions -------- */}
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             {canAddSub && (
@@ -180,14 +192,16 @@ const canAddSub =
                 className="rounded-full px-3 py-1 hover:bg-primary/10"
                 onClick={() => onAddSubAccount(account)}
               >
-                <Plus className="h-4 w-4 mr-1" /> Add Sub-account
+                <Plus className="h-4 w-4 mr-1" />
+                Add Sub-account
               </Button>
             )}
+
             {level === 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-full hover:bg-muted/20 flex items-center justify-center"
+                className="rounded-full hover:bg-muted/20"
                 onClick={() => onViewDetails(account.id)}
                 disabled={fetchingAccountId === account.id}
               >
