@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
 import {
@@ -12,8 +10,11 @@ import {
 import { ChevronRight, ChevronDown, Eye, Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { cn, typeColors, statusColors } from "../types/typeColors";
-import type { Account, Role, AccountStatus } from "../types/accounts.data";
-import { getStateBehavior } from "../services/account.states";
+import type { Account, AccountStatus } from "../types/accounts.data";
+
+import { getRoleStrategy } from "../strategies/roles/role.factory";
+import type { Role } from "../types/role";
+import { getStateBehavior } from "../strategies/states/state.factory";
 
 interface AccountRowProps {
   account: Account;
@@ -39,31 +40,19 @@ export const AccountRow: React.FC<AccountRowProps> = ({
   const [expanded, setExpanded] = useState(true);
   const isParent = Boolean(account.children?.length);
 
-  /* ---------------- state ---------------- */
   const state: AccountStatus = account.current_state?.state ?? "active";
   const stateBehavior = getStateBehavior(state);
-  const isCustomer = role === "customer";
+  const roleStrategy = getRoleStrategy(role);
+  const allowedStatuses = roleStrategy.allowedStatuses(); // for dropdown options
+  const editableStatuses = roleStrategy.editableStatuses(); // for enabling selection
+  const canAddSub = roleStrategy.canAddSubAccount(
+    account,
+    level,
+    stateBehavior
+  );
+  const canEditStatus = roleStrategy.canEditStatus(stateBehavior);
+  const canViewDetails = roleStrategy.canViewDetails(account, level);
 
-  /* ---------------- permissions ---------------- */
-
-  // Add sub-account (Customer NOT allowed)
-  const canAddSub =
-    !isCustomer &&
-    level === 0 &&
-    stateBehavior.canAddSubAccount &&
-    account.account_number?.startsWith("G-AC-");
-
-  // Allowed statuses per role
-  const allowedStatuses: AccountStatus[] = isCustomer
-    ? ["active", "frozen"]
-    : ["active", "frozen", "suspended", "closed"];
-
-  // Can edit status
-  const canEditStatus = isCustomer
-    ? state !== "frozen" // Customer can only change TO frozen
-    : (role === "admin" || role === "manager") && stateBehavior.canEditStatus;
-
-  /* ---------------- UI ---------------- */
   return (
     <>
       <TableRow
@@ -128,14 +117,13 @@ export const AccountRow: React.FC<AccountRowProps> = ({
           })}
         </TableCell>
 
-        {/* -------- Status -------- */}
         <TableCell>
           {updatingAccountId === account.id ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto" />
           ) : (
             <Select
               value={state}
-              disabled={!canEditStatus}
+              disabled={!editableStatuses.includes(state)} // disable selection if not editable
               onValueChange={(v) =>
                 onChangeStatus(account.id, v as AccountStatus)
               }
@@ -153,7 +141,13 @@ export const AccountRow: React.FC<AccountRowProps> = ({
                   <SelectItem
                     key={s}
                     value={s}
-                    className={cn("rounded-lg px-6 py-1", statusColors[s])}
+                    disabled={!editableStatuses.includes(s)} // disable items that cannot be selected
+                    className={cn(
+                      "rounded-lg px-6 py-1",
+                      statusColors[s],
+                      !editableStatuses.includes(s) &&
+                        "opacity-50 cursor-not-allowed"
+                    )}
                   >
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </SelectItem>
@@ -182,7 +176,6 @@ export const AccountRow: React.FC<AccountRowProps> = ({
           )}
         </TableCell>
 
-        {/* -------- Actions -------- */}
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             {canAddSub && (
@@ -197,7 +190,7 @@ export const AccountRow: React.FC<AccountRowProps> = ({
               </Button>
             )}
 
-            {level === 0 && (
+            {canViewDetails && (
               <Button
                 variant="ghost"
                 size="sm"

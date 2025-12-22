@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type Role = "customer" | "manager" | "admin";
 export type AccountStatus = "active" | "frozen" | "suspended" | "closed";
 
 /* ------------------ Core Entities ------------------ */
