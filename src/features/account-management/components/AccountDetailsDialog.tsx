@@ -69,8 +69,8 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
 
   const acc = account.data;
 
-  // ✅ normalize state (VERY IMPORTANT)
-  const accountState = acc.current_state?.state ?? "inactive";
+  // ✅ Normalize parent state safely
+  const accountState = acc.current_state?.state ?? "active";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -221,9 +221,9 @@ const AccountDetailsDialog: React.FC<Props> = ({ account, open, setOpen }) => {
                         </div>
                       </div>
 
-                      {/* ✅ safe child state */}
+                      {/* ✅ Use child state safely */}
                       <StatusBadge
-                        state={child.current_state?.state ?? "inactive"}
+                        state={child.current_state?.state ?? "active"}
                       />
                     </div>
                   ))}
