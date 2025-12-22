@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { httpClient } from "../../../lib/axios";
-import { rolesStorage, userStorage } from "../storage";
+import { rolesStorage, userIdStorage, userStorage } from "../storage";
 import type {
   AuthPayload,
   AuthResponse,
@@ -36,10 +36,11 @@ class AuthServices {
     }
 
     // ✅ Save token
-    userStorage.set(token);
-
+    userStorage.set(user);
+    userIdStorage.set(user.id)
     // ✅ Save roles
     rolesStorage.set(user.roles);
+
 
     // ✅ Normalize user for frontend
     const normalizedUser: UserProfile = {
