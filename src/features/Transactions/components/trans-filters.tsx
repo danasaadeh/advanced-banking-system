@@ -8,6 +8,12 @@ import { Button } from "@/shared/components/ui/button";
 import { Filter, ChevronRight, X } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 
+import type {
+  TransactionType,
+  TransactionStatus,
+  TransactionDirection,
+} from "../types";
+
 /* ---------------- Chip UI ---------------- */
 const Chip: React.FC<{ label: string; onRemove?: () => void }> = ({
   label,
@@ -27,34 +33,38 @@ const Chip: React.FC<{ label: string; onRemove?: () => void }> = ({
 interface TransactionFiltersProps {
   dateFrom: string;
   dateTo: string;
-  type: string;
-  status: string;
-  direction: string;
+
+  type: "all" | TransactionType;
+  status: "all" | TransactionStatus;
+  direction: "all" | TransactionDirection;
 
   onDateFromChange: (v: string) => void;
   onDateToChange: (v: string) => void;
-  onTypeChange: (v: string) => void;
-  onStatusChange: (v: string) => void;
-  onDirectionChange: (v: string) => void;
+  onTypeChange: (v: "all" | TransactionType) => void;
+  onStatusChange: (v: "all" | TransactionStatus) => void;
+  onDirectionChange: (v: "all" | TransactionDirection) => void;
 }
 
 type MenuKey = "type" | "status" | "direction" | null;
 
 /* ---------------- CONSTANTS ---------------- */
-const TRANSACTION_TYPES = [
+const TRANSACTION_TYPES: { value: TransactionType; label: string }[] = [
   { value: "deposit", label: "Deposit" },
   { value: "withdrawal", label: "Withdrawal" },
   { value: "transfer", label: "Transfer" },
 ];
 
-const TRANSACTION_STATUSES = [
+const TRANSACTION_STATUSES: {
+  value: TransactionStatus;
+  label: string;
+}[] = [
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
   { value: "completed", label: "Completed" },
 ];
 
-const DIRECTIONS = [
+const DIRECTIONS: { value: TransactionDirection; label: string }[] = [
   { value: "credit", label: "Credit" },
   { value: "debit", label: "Debit" },
 ];
