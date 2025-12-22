@@ -1,73 +1,207 @@
-# React + TypeScript + Vite
+# Advanced Banking System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, feature-rich banking system built with React, TypeScript, and Vite. This application provides comprehensive banking operations including account management, transactions, customer service, reporting, and user administration.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Modules
 
-## React Compiler
+- **Authentication & Authorization**
+  - Secure login system
+  - Role-based access control (RBAC)
+  - Protected routes and guards
+  - Session management
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Account Management**
+  - Create and manage accounts
+  - Account grouping functionality
+  - Sub-account creation
+  - Account details and pagination
+  - Account state management
 
-## Expanding the ESLint configuration
+- **Transaction Management**
+  - Transaction processing
+  - Transaction approvals workflow
+  - Transaction commands and queries
+  - Scheduled transactions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Customer Service**
+  - Ticket management system
+  - Ticket status tracking
+  - Customer service filters and pagination
+  - Ticket details and forms
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Dashboard**
+  - Comprehensive dashboard with multiple views
+  - Navigation and sidebar
+  - Dashboard layout components
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Statistics & Reporting**
+  - Data visualization
+  - Statistical analysis
+  - Report generation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **User Management**
+  - User administration
+  - User roles and permissions
+
+## 🛠️ Tech Stack
+
+### Core Technologies
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **React Router DOM** - Client-side routing
+- **TanStack Router** - Type-safe routing
+
+### State Management & Data Fetching
+- **Zustand** - Lightweight state management
+- **TanStack Query (React Query)** - Server state management and data fetching
+- **Axios** - HTTP client
+
+### UI & Styling
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Accessible component primitives
+- **Lucide React** - Icon library
+- **Recharts** - Chart library for data visualization
+- **Sonner** - Toast notifications
+
+### Forms & Validation
+- **React Hook Form** - Form state management
+- **Yup** - Schema validation
+- **@hookform/resolvers** - Form validation resolvers
+
+### Internationalization
+- **i18next** - Internationalization framework
+- **react-i18next** - React bindings for i18next
+- Supports English and Arabic languages
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+- **Node.js** (v18 or higher recommended)
+- **npm** or **yarn** package manager
+
+## 🔧 Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd advanced-banking-system
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Install dependencies:
+```bash
+npm install
 ```
+
+## 🚦 Getting Started
+
+### Development
+
+Start the development server:
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173` (or the port specified by Vite).
+
+### Building for Production
+
+Build the application for production:
+```bash
+npm run build
+```
+
+The optimized build will be in the `dist` directory.
+
+### Preview Production Build
+
+Preview the production build locally:
+```bash
+npm run preview
+```
+
+### Linting
+
+Run ESLint to check code quality:
+```bash
+npm run lint
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── features/              # Feature modules
+│   ├── account-management/
+│   ├── auth/
+│   ├── customer-service/
+│   ├── dashboard/
+│   ├── report/
+│   ├── scheduled-trans/
+│   ├── statistics/
+│   ├── transactions/
+│   └── users/
+├── shared/               # Shared components and utilities
+│   ├── components/
+│   ├── hooks/
+│   ├── layouts/
+│   └── pages/
+├── lib/                  # Library configurations
+│   ├── axios/
+│   ├── query-facade/
+│   └── storage/
+├── stores/               # Zustand stores
+├── routes/                # Route configurations
+├── theme/                 # Theme configuration
+├── locales/               # Translation files
+├── i18n/                  # i18n configuration
+└── main.tsx              # Application entry point
+```
+
+## 🌐 Internationalization
+
+The application supports multiple languages:
+- English (en) - Default
+- Arabic (ar)
+
+Language files are located in `src/locales/`. The language can be toggled using the language toggle component.
+
+## 🎨 Theming
+
+The application supports theme switching (light/dark mode) using the theme toggle component. Theme configuration is managed in `src/theme/`.
+
+## 🔐 Authentication
+
+The application includes:
+- Secure authentication flow
+- Protected routes
+- Role-based access control
+- Session persistence
+
+## 📝 Code Style
+
+The project uses:
+- **ESLint** for code linting
+- **TypeScript** for type checking
+- Consistent code formatting
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Ensure all tests pass and linting is clean
+4. Submit a pull request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 👥 Support
+
+For support and questions, please contact the development team.
+
+---
+
+Built with ❤️ using React, TypeScript, and modern web technologies.
