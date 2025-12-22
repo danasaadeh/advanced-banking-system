@@ -22,6 +22,8 @@ import type {
   TransactionStatus,
   TransactionDirection,
 } from "../types";
+import { RejectTransactionCommand } from "../commands/reject-transaction-command";
+import { ApproveTransactionCommand } from "../commands/approve-transaction-command";
 
 const TransactionsPage: React.FC = () => {
   /* ---------------- SEARCH ---------------- */
@@ -90,15 +92,32 @@ const TransactionsPage: React.FC = () => {
   const handleConfirmAction = async () => {
     if (!selectedTransaction || !confirmAction) return;
 
-    await updateTransactionStatus({
-      transactionId: selectedTransaction.id,
-      status: confirmAction === "approve" ? "approved" : "rejected",
-    });
+    try {
+      if (confirmAction === "approve") {
+        const command = new ApproveTransactionCommand(
+          selectedTransaction,
+          userRole,
+          { updateTransactionStatus }
+        );
 
-    // UI cleanup (mutation handles toast + refetch)
-    setConfirmOpen(false);
-    setSelectedTransaction(null);
-    setConfirmAction(null);
+        await command.execute();
+      }
+
+      if (confirmAction === "reject") {
+        const command = new RejectTransactionCommand(selectedTransaction, {
+          updateTransactionStatus,
+        });
+
+        await command.execute();
+      }
+
+      setConfirmOpen(false);
+      setSelectedTransaction(null);
+      setConfirmAction(null);
+    } catch (error: any) {
+      // Optional: toast error
+      console.error(error.message);
+    }
   };
 
   const handleViewDetails = (tx: any) => {
