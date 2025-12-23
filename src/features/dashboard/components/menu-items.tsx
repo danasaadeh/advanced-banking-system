@@ -57,7 +57,7 @@ export const dashboardMenu = (t: any): MenuItem[] => [
     title: t("customerService"),
     url: "/dashboard/customer-service",
     icon: Headset,
-    roles: ["Admin"],
+    roles: ["Admin","Customer"],
   },
   {
     title: t("statistics"),
