@@ -10,6 +10,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import type { ScheduledTransaction } from "../types";
+import { Spinner } from "@/shared/components/ui/spinner";
 
 interface Props {
   open: boolean;
@@ -20,6 +21,7 @@ interface Props {
     amount?: number;
     scheduled_at?: string;
   }) => void;
+  isLoading: boolean; // Add isLoading prop
 }
 
 export const EditScheduledTransactionDialog: React.FC<Props> = ({
@@ -27,6 +29,7 @@ export const EditScheduledTransactionDialog: React.FC<Props> = ({
   onOpenChange,
   transaction,
   onSubmit,
+  isLoading,
 }) => {
   const [amount, setAmount] = React.useState<string>("");
   const [date, setDate] = React.useState<string>("");
@@ -41,11 +44,9 @@ export const EditScheduledTransactionDialog: React.FC<Props> = ({
   if (!transaction) return null;
 
   const handleSubmit = () => {
-    const payload: {
-      id: number;
-      amount?: number;
-      scheduled_at?: string;
-    } = { id: transaction.id };
+    const payload: { id: number; amount?: number; scheduled_at?: string } = {
+      id: transaction.id,
+    };
 
     if (amount.trim() !== "") {
       payload.amount = Number(amount);
@@ -55,8 +56,14 @@ export const EditScheduledTransactionDialog: React.FC<Props> = ({
       payload.scheduled_at = date;
     }
 
-    onSubmit(payload);
-    onOpenChange(false);
+    // Pass the payload to the handleEditSubmit function, which will format it correctly
+    onSubmit({
+      id: payload.id,
+      amount: payload.amount,
+      scheduled_at: payload.scheduled_at,
+    });
+
+    onOpenChange(false); // Close the dialog after submission
   };
 
   const isDisabled = amount.trim() === "" && !date;
@@ -103,8 +110,9 @@ export const EditScheduledTransactionDialog: React.FC<Props> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isDisabled}>
-            Save Changes
+          <Button onClick={handleSubmit} disabled={isDisabled || isLoading}>
+            {isLoading ? <Spinner /> : "Save Changes"}{" "}
+            {/* Show spinner when loading */}
           </Button>
         </DialogFooter>
       </DialogContent>

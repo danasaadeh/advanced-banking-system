@@ -14,6 +14,7 @@ import type { ScheduledTransaction } from "../types";
 
 interface Props {
   schedules: ScheduledTransaction[];
+  loading?: boolean; // NEW: Handle loading state
   onViewDetails: (schedule: ScheduledTransaction) => void;
   onEdit: (schedule: ScheduledTransaction) => void;
   onCancel: (schedule: ScheduledTransaction) => void;
@@ -22,11 +23,13 @@ interface Props {
 
 export const ScheduledTransactionsTable: React.FC<Props> = ({
   schedules,
+  loading = false, // Default to false if no loading prop is passed
   onViewDetails,
   onEdit,
   onCancel,
   onRetry,
 }) => {
+  // Function to render the status badge
   const getStatusBadge = (status: ScheduledTransaction["status"]) => {
     switch (status) {
       case "scheduled":
@@ -54,6 +57,7 @@ export const ScheduledTransactionsTable: React.FC<Props> = ({
     }
   };
 
+  // Function to format the scheduled date
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -66,7 +70,7 @@ export const ScheduledTransactionsTable: React.FC<Props> = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead>Refrence Number</TableHead>
             <TableHead>Source Account</TableHead>
             <TableHead>Target Account</TableHead>
             <TableHead>Type</TableHead>
@@ -79,83 +83,102 @@ export const ScheduledTransactionsTable: React.FC<Props> = ({
         </TableHeader>
 
         <TableBody>
-          {schedules.map((schedule) => (
-            <TableRow key={schedule.id}>
-              <TableCell className="font-medium">#{schedule.id}</TableCell>
-
-              <TableCell>{schedule.source_account ?? "—"}</TableCell>
-
-              <TableCell>{schedule.target_account ?? "—"}</TableCell>
-
-              <TableCell className="capitalize">{schedule.type}</TableCell>
-
-              <TableCell>
-                {schedule.amount.toLocaleString()} {schedule.currency}
+          {/* Loading State */}
+          {loading && (
+            <TableRow>
+              <TableCell colSpan={9} className="h-64 text-center">
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+                  <p className="text-muted-foreground text-sm">
+                    Loading transactions...
+                  </p>
+                </div>
               </TableCell>
+            </TableRow>
+          )}
 
-              <TableCell>{formatDate(schedule.scheduled_at)}</TableCell>
+          {/* Data Rendering */}
+          {!loading &&
+            schedules.map((schedule) => (
+              <TableRow key={schedule.id}>
+                <TableCell className="font-medium">
+                  {schedule.reference_number}
+                </TableCell>
 
-              <TableCell>{getStatusBadge(schedule.status)}</TableCell>
+                <TableCell>{schedule.source_account ?? "—"}</TableCell>
 
-              <TableCell>{schedule.created_by}</TableCell>
+                <TableCell>{schedule.target_account ?? "—"}</TableCell>
 
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  {/* View Details */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    title="View Details"
-                    onClick={() => onViewDetails(schedule)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                <TableCell className="capitalize">{schedule.type}</TableCell>
 
-                  {/* Edit (only scheduled) */}
-                  {schedule.status === "scheduled" && (
+                <TableCell>
+                  {schedule.amount.toLocaleString()} {schedule.currency}
+                </TableCell>
+
+                <TableCell>{formatDate(schedule.scheduled_at)}</TableCell>
+
+                <TableCell>{getStatusBadge(schedule.status)}</TableCell>
+
+                <TableCell>{schedule.created_by}</TableCell>
+
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {/* View Details */}
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      title="Edit"
-                      onClick={() => onEdit(schedule)}
+                      title="View Details"
+                      onClick={() => onViewDetails(schedule)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Eye className="h-4 w-4" />
                     </Button>
-                  )}
 
-                  {/* Cancel/Delete (only scheduled) */}
-                  {schedule.status === "scheduled" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                      title="Cancel"
-                      onClick={() => onCancel(schedule)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                    {/* Edit (only for scheduled) */}
+                    {schedule.status === "scheduled" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        title="Edit"
+                        onClick={() => onEdit(schedule)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
 
-                  {/* Retry (only failed) */}
-                  {schedule.status === "failed" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700"
-                      title="Retry"
-                      onClick={() => onRetry(schedule)}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+                    {/* Cancel/Delete (only for scheduled) */}
+                    {schedule.status === "scheduled" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        title="Cancel"
+                        onClick={() => onCancel(schedule)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
 
-          {schedules.length === 0 && (
+                    {/* Retry (only for failed) */}
+                    {schedule.status === "failed" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700"
+                        title="Retry"
+                        onClick={() => onRetry(schedule)}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+
+          {/* No Data */}
+          {!loading && schedules.length === 0 && (
             <TableRow>
               <TableCell
                 colSpan={9}

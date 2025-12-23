@@ -17,9 +17,11 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import type { RecurringTransaction } from "../types";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
+  isLoading: boolean; // Add isLoading prop
   onOpenChange: (open: boolean) => void;
   recurrence: RecurringTransaction | null;
   onSubmit: (payload: {
@@ -35,6 +37,7 @@ export const EditRecurringTransactionDialog: React.FC<Props> = ({
   onOpenChange,
   recurrence,
   onSubmit,
+  isLoading,
 }) => {
   const [amount, setAmount] = React.useState<string>("");
   const [frequency, setFrequency] = React.useState<
@@ -124,7 +127,10 @@ export const EditRecurringTransactionDialog: React.FC<Props> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Save Changes</Button>
+          <Button onClick={handleSubmit}>
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}Save
+            Changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

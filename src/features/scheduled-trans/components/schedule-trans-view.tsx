@@ -16,6 +16,20 @@ import { ScheduledTransactionDetailsDialog } from "./sched-details-dialog";
 import { EditScheduledTransactionDialog } from "./edit-sched-dialog";
 import ConfirmDialog from "@/shared/components/ui/confirm-dialog";
 import { EditRecurringTransactionDialog } from "./edit-recurrent-dialog";
+import {
+  useDeleteScheduledTransaction,
+  useScheduledTransactionDetails,
+  useTerminateRecurringTransaction,
+  useToggleRecurringTransaction,
+  useUpdateRecurringTransaction,
+  useUpdateScheduledTransaction,
+} from "../services/mutation";
+import { useNavigate } from "react-router-dom";
+import { useCreateScheduledTransaction } from "@/features/transactions/services/mutation";
+import type {
+  CreateScheduledTransactionPayload,
+  TransactionType,
+} from "@/features/transactions/types";
 
 export interface ScheduledRecurringTransactionsViewProps {
   scheduledTransactions: ScheduledTransaction[];
@@ -30,6 +44,9 @@ export interface ScheduledRecurringTransactionsViewProps {
   onEditRecurring: (r: RecurringTransaction) => void;
   onViewRecurringHistory: (r: RecurringTransaction) => void;
   onTerminateRecurring: (r: RecurringTransaction) => void;
+
+  scheduledLoading?: boolean; // 👈 NEW
+  recurringLoading?: boolean; // NEW for recurring transactions
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -39,7 +56,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
 > = ({
   scheduledTransactions,
   recurringTransactions,
-
+  scheduledLoading,
   onViewScheduleDetails,
   onEditSchedule,
   onCancelSchedule,
@@ -47,28 +64,35 @@ export const ScheduledRecurringTransactionsView: React.FC<
 
   onToggleRecurring,
   onEditRecurring,
-  onViewRecurringHistory,
+
   onTerminateRecurring,
+  recurringLoading,
 }) => {
   const [tab, setTab] = React.useState<"scheduled" | "recurring">("scheduled");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
 
   /* ------------------ Filtering ------------------ */
-  const filterById = <T extends { id: number }>(items: T[]) =>
-    items.filter((i) =>
-      search ? i.id.toString().includes(search.trim()) : true
+  const filterByReferenceNumber = <T extends { reference_number: string }>(
+    items: T[]
+  ) => {
+    return items.filter((item) =>
+      search
+        ? item.reference_number
+            .toLowerCase()
+            .includes(search.trim().toLowerCase())
+        : true
     );
+  };
 
-  const filteredScheduled = filterById(scheduledTransactions);
+  const filteredScheduled = filterByReferenceNumber(scheduledTransactions);
+  const filteredRecurring = filterByReferenceNumber(recurringTransactions);
 
   /* ------------------ Pagination ------------------ */
   const paginate = <T,>(items: T[]) => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return items.slice(start, start + ITEMS_PER_PAGE);
   };
-
-  const scheduledPage = paginate(filteredScheduled);
 
   React.useEffect(() => {
     setPage(1);
@@ -78,7 +102,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
     recurringTransactions
   );
 
-  const filteredRecurring = filterById(recurringData);
   React.useEffect(() => {
     setRecurringData(recurringTransactions);
   }, [recurringTransactions]);
@@ -87,6 +110,8 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const [selected, setSelected] = React.useState<ScheduledTransaction | null>(
     null
   );
+
+  const scheduledPage = paginate(filteredScheduled);
   const recurringPage = paginate(filteredRecurring);
 
   const totalItems =
@@ -99,8 +124,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
     React.useState<ScheduledTransaction | null>(null);
 
   const [retryOpen, setRetryOpen] = React.useState(false);
-  const [retryTarget, setRetryTarget] =
-    React.useState<ScheduledTransaction | null>(null);
 
   const [terminateOpen, setTerminateOpen] = React.useState(false);
   const [terminateTarget, setTerminateTarget] =
@@ -109,6 +132,9 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const [editRecurringOpen, setEditRecurringOpen] = React.useState(false);
   const [editRecurringTarget, setEditRecurringTarget] =
     React.useState<RecurringTransaction | null>(null);
+
+  const { mutate: updateRecurring, isLoading: isUpdatingRecurring } =
+    useUpdateRecurringTransaction();
 
   const handleEditRecurring = (r: RecurringTransaction) => {
     setEditRecurringTarget(r);
@@ -119,50 +145,110 @@ export const ScheduledRecurringTransactionsView: React.FC<
     setDeleteTarget(tx);
     setDeleteOpen(true);
   };
+  const { mutate: deleteTransaction, isLoading: isDeleting } =
+    useDeleteScheduledTransaction();
 
   const handleConfirmDelete = () => {
-    console.log("scheduled delted");
-  };
+    if (!deleteTarget) return;
 
+    deleteTransaction(deleteTarget.id);
+    setDeleteOpen(false);
+    setDeleteTarget(null);
+  };
   const handleViewDetails = (tx: ScheduledTransaction) => {
-    setSelected(tx);
-    setOpen(true);
+    setSelected(tx); // Set the selected transaction
+    setOpen(true); // Open the dialog
   };
   const handleEdit = (tx: ScheduledTransaction) => {
     setSelected(tx);
     setEditOpen(true);
   };
-
+  // Use the mutation hook
+  const { mutate: updateTransaction, isLoading } =
+    useUpdateScheduledTransaction();
   const handleEditSubmit = (payload: {
     id: number;
     amount?: number;
     scheduled_at?: string;
   }) => {
-    console.log("Edit scheduled tx:", payload);
-    // 🔗 react-query mutation here
+    const formattedPayload = {
+      id: payload.id,
+      payload: {
+        amount: payload.amount,
+        scheduledAt: payload.scheduled_at, // Note: 'scheduledAt' (camelCase) instead of 'scheduled_at' (snake_case)
+      },
+    };
+
+    updateTransaction(formattedPayload); // Call the mutation with the corrected payload
+    setEditOpen(false); // Close the edit dialog after submission
   };
+
+  const [retryTarget, setRetryTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  const { data: retryDetails, isLoading: isRetryLoading } =
+    useScheduledTransactionDetails(retryTarget?.id ?? null);
+
+  const { mutate: createScheduled, isLoading: isRetrying } =
+    useCreateScheduledTransaction();
+
+  function mapScheduledToCreatePayload(
+    dto: any
+  ): CreateScheduledTransactionPayload {
+    return {
+      // ✅ THIS is the real type from the backend
+      type: dto.type as TransactionType, // "deposit" | "withdrawal" | "transfer"
+
+      amount: Number(dto.amount),
+      scheduled_at: dto.scheduled_at,
+
+      // backend expects account_id
+      account_id: dto.account_id,
+
+      // only for transfers
+      ...(dto.type === "transfer"
+        ? { target_account_id: dto.target_account_id }
+        : {}),
+    };
+  }
+
   const handleConfirmRetry = () => {
-    if (!retryTarget) return;
+    if (!retryDetails) return;
 
-    console.log("Retry scheduled transaction:", retryTarget.id);
+    const payload = mapScheduledToCreatePayload(retryDetails);
 
-    // UI-only for now
-    setRetryOpen(false);
-    setRetryTarget(null);
+    createScheduled(payload, {
+      onSuccess: () => {
+        setRetryOpen(false);
+        setRetryTarget(null);
+      },
+    });
   };
 
   const handleRetryClick = (tx: ScheduledTransaction) => {
     setRetryTarget(tx);
     setRetryOpen(true);
   };
+
+  const { mutate: terminateRecurring, isLoading: isTerminating } =
+    useTerminateRecurringTransaction();
+
   const handleConfirmTerminate = () => {
     if (!terminateTarget) return;
 
-    console.log("Terminate recurring transaction:", terminateTarget.id);
-
-    // UI-only
-    setTerminateOpen(false);
-    setTerminateTarget(null);
+    terminateRecurring(terminateTarget.id, {
+      onSuccess: () => {
+        setTerminateOpen(false);
+        setTerminateTarget(null);
+      },
+    });
+  };
+  const navigate = useNavigate();
+  const onViewRecurringHistory = (recurrence: RecurringTransaction) => {
+    navigate(
+      `/dashboard/transactions?search=${recurrence.reference_number}&status=completed`,
+      { replace: true } // ✅ This replaces the current URL
+    );
   };
 
   const handleTerminateClick = (r: RecurringTransaction) => {
@@ -170,17 +256,25 @@ export const ScheduledRecurringTransactionsView: React.FC<
     setTerminateOpen(true);
   };
 
+  const { mutate: toggleRecurring, isLoading: isToggling } =
+    useToggleRecurringTransaction();
+
   const handleToggleRecurringActive = (
     recurrence: RecurringTransaction,
     active: boolean
   ) => {
-    setRecurringData((prev) =>
-      prev.map((r) =>
-        r.id === recurrence.id ? { ...r, is_active: active } : r
-      )
+    toggleRecurring(
+      { id: recurrence.id, isActive: active },
+      {
+        onSuccess: () => {
+          setRecurringData((prev) =>
+            prev.map((r) =>
+              r.id === recurrence.id ? { ...r, is_active: active } : r
+            )
+          );
+        },
+      }
     );
-
-    console.log("Toggle recurring active:", recurrence.id, active);
   };
 
   return (
@@ -196,7 +290,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
           <div className="relative w-full sm:max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Transaction ID"
+              placeholder="Search by Transaction Reference Number"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -234,6 +328,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
         {/* Scheduled */}
         <TabsContent value="scheduled" className="space-y-4">
           <ScheduledTransactionsTable
+            loading={scheduledLoading} // 👈 HERE
             schedules={scheduledPage}
             onViewDetails={handleViewDetails}
             onEdit={handleEdit}
@@ -245,11 +340,13 @@ export const ScheduledRecurringTransactionsView: React.FC<
         {/* Recurring */}
         <TabsContent value="recurring" className="space-y-4">
           <RecurringTransactionsTable
+            loading={scheduledLoading} // 👈 Pass scheduled loading state
             recurrences={recurringPage}
             onToggleActive={handleToggleRecurringActive}
             onEdit={handleEditRecurring}
             onViewHistory={onViewRecurringHistory}
             onTerminate={handleTerminateClick} // 👈 HERE
+            isToggling={isToggling}
           />
         </TabsContent>
       </Tabs>
@@ -267,6 +364,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
         transaction={selected}
       />
       <EditScheduledTransactionDialog
+        isLoading={isLoading}
         open={editOpen}
         onOpenChange={setEditOpen}
         transaction={selected}
@@ -284,7 +382,9 @@ export const ScheduledRecurringTransactionsView: React.FC<
         confirmLabel="Cancel Transaction"
         cancelLabel="Keep Transaction"
         onConfirm={handleConfirmDelete}
+        loading={isDeleting} // ✅ Use `loading` instead of `disabled`
       />
+
       <ConfirmDialog
         open={retryOpen}
         onOpenChange={setRetryOpen}
@@ -310,14 +410,34 @@ export const ScheduledRecurringTransactionsView: React.FC<
         confirmLabel="Terminate"
         cancelLabel="Cancel"
         onConfirm={handleConfirmTerminate}
+        loading={isTerminating}
       />
       <EditRecurringTransactionDialog
         open={editRecurringOpen}
         onOpenChange={setEditRecurringOpen}
         recurrence={editRecurringTarget}
-        onSubmit={(payload) => {
-          console.log("Edit recurrence payload:", payload);
+        onSubmit={(payload: {
+          id: number;
+          amount?: number;
+          frequency?: "daily" | "weekly" | "monthly";
+          endDate?: string;
+        }) => {
+          if (!editRecurringTarget) return;
+
+          // Call the mutation
+          updateRecurring(
+            {
+              id: editRecurringTarget.id,
+              payload,
+            },
+            {
+              onSuccess: () => {
+                setEditRecurringOpen(false); // Close dialog on success
+              },
+            }
+          );
         }}
+        isLoading={isUpdatingRecurring} // Pass loading state to dialog
       />
     </div>
   );
