@@ -15,6 +15,10 @@ export class ApproveTransactionCommand implements Command {
   private transaction: Transaction;
   private userRole: UserRole;
   private deps: ApproveCommandDeps;
+  // dependency:
+  //   In your Command pattern implementation, deps is an object that contains everything the command needs to do its job, except the data itself.
+
+  // Think of deps as the tools the command uses, not the command’s data.
 
   constructor(
     transaction: Transaction,
