@@ -1,6 +1,7 @@
 // features/customer-service/hooks/useCustomerServiceActions.ts
 import { useState } from "react";
 import { useCreateTicket, useUpdateTicketStatus } from "../services/customer-service.mutations";
+import { queryClient } from "@/lib/query-facade";
 import type { Ticket, TicketFormData } from "../types/customer-service.types";
 
 export const useCustomerServiceActions = () => {
@@ -26,6 +27,12 @@ export const useCustomerServiceActions = () => {
   const handleSaveTicket = async (ticketData: TicketFormData): Promise<{ success: boolean; message: string }> => {
     try {
       await createTicket.mutateAsync(ticketData);
+      
+      // إعادة جلب البيانات تلقائياً
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      }, 300);
+      
       return { success: true, message: "Ticket created successfully" };
     } catch (error: any) {
       return { 
@@ -39,7 +46,7 @@ export const useCustomerServiceActions = () => {
     }
   };
 
-  const handleUpdateStatus = async (status: "pending" | "resolved" | "in-progress"): Promise<{ success: boolean; message: string }> => {
+  const handleUpdateStatus = async (status: "pending" | "in_progress" | "resolved"): Promise<{ success: boolean; message: string }> => {
     if (!selectedTicket) return { success: false, message: "No ticket selected" };
 
     try {
@@ -47,6 +54,12 @@ export const useCustomerServiceActions = () => {
         ticketId: selectedTicket.id, 
         status 
       });
+      
+      // إعادة جلب البيانات تلقائياً
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      }, 300);
+      
       return { success: true, message: "Status updated successfully" };
     } catch (error: any) {
       return { 

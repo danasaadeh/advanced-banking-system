@@ -52,25 +52,25 @@ export const TicketDetailsDialog: React.FC<TicketDetailsDialogProps> = ({
         return {
           color: "bg-amber-500/10 text-amber-700 border-amber-200",
           icon: <AlertCircle className="h-4 w-4" />,
-          label: "Pending",
+          label: ticket.status_label || "Pending",
         };
-      case "in-progress":
+      case "in_progress":
         return {
           color: "bg-blue-500/10 text-blue-700 border-blue-200",
           icon: <RefreshCw className="h-4 w-4" />,
-          label: "In Progress",
+          label: ticket.status_label || "In Progress",
         };
       case "resolved":
         return {
           color: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
           icon: <CheckCircle className="h-4 w-4" />,
-          label: "Resolved",
+          label: ticket.status_label || "Resolved",
         };
       default:
         return {
           color: "bg-gray-500/10 text-gray-700 border-gray-200",
           icon: <AlertCircle className="h-4 w-4" />,
-          label: "Unknown",
+          label: ticket.status_label || "Unknown",
         };
     }
   };
@@ -127,7 +127,7 @@ export const TicketDetailsDialog: React.FC<TicketDetailsDialogProps> = ({
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">{ticket.user_name}</p>
+                    <p className="font-medium">{ticket.user.name}</p>
                   </div>
                 </div>
 
@@ -137,7 +137,7 @@ export const TicketDetailsDialog: React.FC<TicketDetailsDialogProps> = ({
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{ticket.user_email}</p>
+                    <p className="font-medium">{ticket.user.email}</p>
                   </div>
                 </div>
               </div>
