@@ -123,10 +123,15 @@ export const AccountRow: React.FC<AccountRowProps> = ({
           ) : (
             <Select
               value={state}
-              disabled={!editableStatuses.includes(state)} // disable selection if not editable
-              onValueChange={(v) =>
-                onChangeStatus(account.id, v as AccountStatus)
-              }
+              disabled={!canEditStatus} // disables the dropdown for customers where appropriate
+              onValueChange={(v) => {
+                // only allow change if the status is editable
+                if (
+                  roleStrategy.editableStatuses().includes(v as AccountStatus)
+                ) {
+                  onChangeStatus(account.id, v as AccountStatus);
+                }
+              }}
             >
               <SelectTrigger
                 className={cn(
@@ -136,16 +141,17 @@ export const AccountRow: React.FC<AccountRowProps> = ({
               >
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent className="rounded-lg shadow-lg">
-                {allowedStatuses.map((s) => (
+                {roleStrategy.allowedStatuses().map((s) => (
                   <SelectItem
                     key={s}
                     value={s}
-                    disabled={!editableStatuses.includes(s)} // disable items that cannot be selected
+                    disabled={!roleStrategy.editableStatuses().includes(s)}
                     className={cn(
                       "rounded-lg px-6 py-1",
                       statusColors[s],
-                      !editableStatuses.includes(s) &&
+                      !roleStrategy.editableStatuses().includes(s) &&
                         "opacity-50 cursor-not-allowed"
                     )}
                   >
