@@ -4,13 +4,14 @@ import { lazy, Suspense, type JSX } from "react";
 import DashboardLayout from "../components/dashboard-layout";
 import ProtectedRoute from "@/shared/components/protected-route";
 
-import { StatisticsPage } from "@/features/statistics/pages";
+
 import RoleProtectedRoute from "@/shared/components/role-protected-route";
 import UsersListPage from "@/features/users/pages/UsersListPage";
 import OverviewPage from "../pages/dashboard";
 
 import CustomerServiceRoutes from "@/features/customer-service/routes/CustomerServiceRoutes";
 import { ScheduledRecurringTransactionsPage } from "@/features/scheduled-trans/pages";
+import StatisticsPage from "../pages/statistics";
 
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
@@ -19,6 +20,7 @@ const Transactions = lazy(() => import("../../transactions/pages"));
 const Settings = lazy(() => import("../pages/settings"));
 const Accounts = lazy(() => import("../../account-management/pages"));
 
+ const ReportsPage = lazy(() => import("@/features/reports/pages"));
 const Load = (c: JSX.Element) => (
   <Suspense
     fallback={
@@ -52,6 +54,8 @@ export const dashboardRoutes = [
       { path: "accounts", element: Load(<Accounts />) },
       { path: "users", element: Load(<UsersListPage />) },
       { path: "customer-service/*", element: Load(<CustomerServiceRoutes />) },
+      { path: "statistics", element: Load(<StatisticsPage />) },
+      { path: "reports", element: Load(<ReportsPage />) },
     ],
   },
 ];

@@ -11,6 +11,8 @@ import {
   ArrowLeftRight,
   Headset,
   ClockFading,
+  BarChart3,
+  FileText,
 } from "lucide-react";
 
 export interface MenuItem {
@@ -56,6 +58,18 @@ export const dashboardMenu = (t: any): MenuItem[] => [
     url: "/dashboard/customer-service",
     icon: Headset,
     roles: ["Admin"],
+  },
+  {
+    title: t("statistics"),
+    url: "/dashboard/statistics",
+    icon: BarChart3,
+    roles: ["Admin"], 
+  },
+  {
+    title: t("reports"),
+    url: "/dashboard/reports",
+    icon: FileText,
+    roles: ["Admin"], 
   },
 ];
 
