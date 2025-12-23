@@ -1,83 +1,68 @@
 import * as yup from "yup";
 
-export const addTransactionSchema = yup.object({
-  type: yup
-    .mixed<"deposit" | "withdrawal" | "transfer">()
-    .oneOf(["deposit", "withdrawal", "transfer"])
-    .required(),
+export const addTransactionSchema: yup.ObjectSchema<AddTransactionFormValues> =
+  yup
+    .object({
+      type: yup
+        .mixed<AddTransactionFormValues["type"]>()
+        .oneOf(["deposit", "withdrawal", "transfer"])
+        .required(),
 
-  /* ---------------- Accounts ---------------- */
-  source_account: yup.string().when("type", {
-    is: (type: string) => type !== "deposit",
-    then: (schema) => schema.required("Source account is required"),
-    otherwise: (schema) => schema.optional(),
-  }),
+      sourceAccountId: yup.string().when("type", {
+        is: (type: string) => type !== "deposit",
+        then: (s) => s.required(),
+        otherwise: (s) => s.optional(),
+      }),
 
-  target_account: yup.string().when("type", {
-    is: (type: string) => type === "deposit" || type === "transfer",
-    then: (schema) => schema.required("Target account is required"),
-    otherwise: (schema) => schema.optional(),
-  }),
+      targetAccountId: yup.string().when("type", {
+        is: (type: string) => type === "deposit" || type === "transfer",
+        then: (s) => s.required(),
+        otherwise: (s) => s.optional(),
+      }),
 
-  /* ---------------- Amount & Currency ---------------- */
-  amount: yup
-    .number()
-    .typeError("Amount must be a number")
-    .positive("Amount must be greater than zero")
-    .required("Amount is required"),
+      amount: yup.number().required().positive(),
 
-  currency: yup.string().required("Currency is required"),
+      currency: yup.string().required(),
 
-  description: yup.string().max(255).optional(),
+      description: yup.string().optional(),
 
-  /* ---------------- Scheduled ---------------- */
-  isScheduled: yup.boolean().required(),
+      scheduled_at: yup.string().when("$isScheduled", {
+        is: true,
+        then: (s) => s.required(),
+        otherwise: (s) => s.optional(),
+      }),
 
-  scheduled_date: yup.string().when("isScheduled", {
-    is: true,
-    then: (schema) =>
-      schema
-        .required("Scheduled date is required")
-        .test(
-          "future-date",
-          "Scheduled date must be in the future",
-          (value) => !value || new Date(value) > new Date()
-        ),
-    otherwise: (schema) => schema.optional(),
-  }),
+      frequency: yup
+        .mixed<"daily" | "weekly" | "monthly">()
+        .when("$isRecurring", {
+          is: true,
+          then: (s) => s.required(),
+          otherwise: (s) => s.optional(),
+        }),
 
-  /* ---------------- Recurring ---------------- */
-  isRecurring: yup.boolean().required(),
+      start_date: yup.string().when("$isRecurring", {
+        is: true,
+        then: (s) => s.required(),
+        otherwise: (s) => s.optional(),
+      }),
 
-  frequency: yup.mixed<"daily" | "weekly" | "monthly">().when("isRecurring", {
-    is: true,
-    then: (schema) =>
-      schema
-        .oneOf(["daily", "weekly", "monthly"])
-        .required("Frequency is required"),
-    otherwise: (schema) => schema.optional(),
-  }),
+      end_date: yup.string().optional(),
+    })
+    .required(); // 🚨 THIS IS CRITICAL
 
-  start_date: yup.string().when("isRecurring", {
-    is: true,
-    then: (schema) => schema.required("Start date is required"),
-    otherwise: (schema) => schema.optional(),
-  }),
+export interface AddTransactionFormValues {
+  type: "deposit" | "withdrawal" | "transfer";
 
-  end_date: yup.string().when("isRecurring", {
-    is: true,
-    then: (schema) =>
-      schema
-        .required("End date is required")
-        .test(
-          "after-start",
-          "End date must be after start date",
-          function (value) {
-            const { start_date } = this.parent;
-            if (!value || !start_date) return true;
-            return new Date(value) > new Date(start_date);
-          }
-        ),
-    otherwise: (schema) => schema.optional(),
-  }),
-});
+  sourceAccountId?: string;
+  targetAccountId?: string;
+
+  amount: number;
+  currency: string;
+  description?: string;
+
+  scheduled_at?: string;
+
+  frequency?: "daily" | "weekly" | "monthly";
+  start_date?: string;
+  end_date?: string;
+}

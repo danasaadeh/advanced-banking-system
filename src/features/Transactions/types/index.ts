@@ -177,7 +177,7 @@ export interface CreateScheduledTransactionResponse {
   data: ScheduledTransaction;
 }
 
-export type RecurringFrequency = "daily" | "weekly" | "monthly" | "yearly";
+export type RecurringFrequency = "daily" | "weekly" | "monthly";
 
 export interface CreateRecurringTransactionPayload {
   type: TransactionType;
@@ -210,6 +210,27 @@ export interface RecurringTransaction {
 export interface CreateRecurringTransactionResponse {
   message: string;
   data: RecurringTransaction;
+}
+
+export type Frequency = "daily" | "weekly" | "monthly";
+
+export interface TransactionFormState {
+  type: TransactionType;
+
+  sourceAccountId?: string;
+  targetAccountId?: string;
+
+  amount: string;
+  currency: string;
+  description?: string;
+
+  // scheduled
+  scheduled_at?: string;
+
+  // recurring
+  frequency?: Frequency;
+  start_date?: string;
+  end_date?: string;
 }
 // export interface Transaction {
 //   id: number;
