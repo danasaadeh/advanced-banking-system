@@ -31,40 +31,45 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
   const updateStatusMutation = useUpdateTicketStatus();
 
   const isLoading = updateStatusMutation.isLoading;
+  const isResolved = ticket.status === "resolved";
 
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "pending":
         return {
-          color: "bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/20",
+          color: "bg-amber-500/10 text-amber-700 border-amber-200",
           icon: <AlertCircle className="h-3.5 w-3.5" />,
-          label: "Pending",
+          label: ticket.status_label || "Pending",
+          hoverColor: "hover:bg-amber-500/20",
         };
-      case "in-progress":
+      case "in_progress":
         return {
-          color: "bg-blue-500/10 text-blue-700 border-blue-200 hover:bg-blue-500/20",
+          color: "bg-blue-500/10 text-blue-700 border-blue-200",
           icon: <RefreshCw className="h-3.5 w-3.5" />,
-          label: "In Progress",
+          label: ticket.status_label || "In Progress",
+          hoverColor: "hover:bg-blue-500/20",
         };
       case "resolved":
         return {
-          color: "bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/20",
+          color: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
           icon: <CheckCircle className="h-3.5 w-3.5" />,
-          label: "Resolved",
+          label: ticket.status_label || "Resolved",
+          hoverColor: "",
         };
       default:
         return {
-          color: "bg-gray-500/10 text-gray-700 border-gray-200 hover:bg-gray-500/20",
+          color: "bg-gray-500/10 text-gray-700 border-gray-200",
           icon: <AlertCircle className="h-3.5 w-3.5" />,
-          label: "Unknown",
+          label: ticket.status_label || "Unknown",
+          hoverColor: "hover:bg-gray-500/20",
         };
     }
   };
 
   const statusConfig = getStatusConfig(ticket.status);
 
-  const handleStatusChange = async (newStatus: "pending" | "resolved" | "in-progress") => {
-    if (newStatus === ticket.status) return;
+  const handleStatusChange = async (newStatus: "pending" | "in_progress" | "resolved") => {
+    if (newStatus === ticket.status || isResolved) return;
 
     try {
       await updateStatusMutation.mutateAsync({
@@ -76,7 +81,7 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
         onStatusChange();
       }
       
-      toast.success(`Status changed to ${newStatus}`);
+      toast.success(`Status changed to ${newStatus === "pending" ? "Pending" : newStatus === "in_progress" ? "In Progress" : "Resolved"}`);
     } catch (error) {
       toast.error("Failed to update status");
     }
@@ -85,19 +90,42 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
   const getStatusOptions = () => {
     const allStatuses = [
       { value: "pending", label: "Pending", icon: AlertCircle },
-      { value: "in-progress", label: "In Progress", icon: RefreshCw },
+      { value: "in_progress", label: "In Progress", icon: RefreshCw },
       { value: "resolved", label: "Resolved", icon: CheckCircle },
     ];
 
     return allStatuses.filter(option => option.value !== ticket.status);
   };
 
+  const statusOptions = getStatusOptions();
+
+  // إذا كانت الحالة resolved، نعرض Badge عادي بدون dropdown
+  if (isResolved) {
+    return (
+      <Badge
+        className={`
+          ${statusConfig.color}
+          font-medium px-3 py-1.5 border
+          cursor-default
+        `}
+        variant="outline"
+      >
+        <div className="flex items-center gap-2">
+          {statusConfig.icon}
+          <span>{statusConfig.label}</span>
+        </div>
+      </Badge>
+    );
+  }
+
+  // إذا لم تكن resolved، نعرض Badge مع dropdown
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Badge
           className={`
             ${statusConfig.color}
+            ${statusConfig.hoverColor}
             font-medium px-3 py-1.5 border
             transition-all duration-200
             hover:shadow-sm hover:scale-[1.02]
@@ -125,14 +153,14 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
         align="start"
         className="w-48 p-2 animate-in slide-in-from-top-2 duration-200"
       >
-        {getStatusOptions().map((option) => {
+        {statusOptions.map((option) => {
           const Icon = option.icon;
           const optionConfig = getStatusConfig(option.value);
           
           return (
             <DropdownMenuItem
               key={option.value}
-              onClick={() => handleStatusChange(option.value as "pending" | "resolved" | "in-progress")}
+              onClick={() => handleStatusChange(option.value as "pending" | "in_progress" | "resolved")}
               className={`
                 cursor-pointer py-2.5 px-3 rounded-md
                 flex items-center gap-3
@@ -147,6 +175,11 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
               </div>
               <div className="flex flex-col">
                 <span className="font-medium">{option.label}</span>
+                {option.value === "resolved" && (
+                  <span className="text-xs text-muted-foreground">
+                    Final status - cannot be changed
+                  </span>
+                )}
               </div>
             </DropdownMenuItem>
           );

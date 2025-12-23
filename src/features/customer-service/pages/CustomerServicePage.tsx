@@ -1,16 +1,16 @@
 // features/customer-service/pages/CustomerServicePage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { useApiQuery } from "@/lib/query-facade";
+import { customerServiceApiService } from "../services/customer-service.api";
 import { useCustomerServiceFilters } from "../hooks/useCustomerServiceFilters";
 import { useCustomerServiceActions } from "../hooks/useCustomerServiceActions";
-import { useTickets } from "../services/customer-service.queries";
 import { TicketsFilters } from "../components/TicketsFilters";
 import { TicketCard } from "../components/TicketCard";
 import { TicketFormDialog } from "../components/TicketFormDialog";
 import { TicketDetailsDialog } from "../components/TicketDetailsDialog";
-import { TicketsPagination } from "../components/TicketsPagination";
 import type { Ticket } from "../types/customer-service.types";
 
 const CustomerServicePage: React.FC = () => {
@@ -32,22 +32,37 @@ const CustomerServicePage: React.FC = () => {
     isLoading,
   } = useCustomerServiceActions();
 
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [detailsTicket, setDetailsTicket] = useState<Ticket | null>(null);
 
-  const { data, isLoading: isLoadingTickets, isError } = useTickets({
-    search: searchQuery,
-    status: selectedStatus,
-    page: currentPage,
-    perPage: 8,
+  const { 
+    data, 
+    isLoading: isLoadingTickets, 
+    isError,
+    refetch
+  } = useApiQuery({
+    key: ["tickets", searchQuery, selectedStatus, currentPage, 8],
+    fetcher: () => customerServiceApiService.getTickets(
+      searchQuery, 
+      selectedStatus, 
+      currentPage, 
+      8
+    ),
   });
 
-  const tickets = data?.data || [];
-  const pagination = data?.pagination;
+  useEffect(() => {
+    if (!showDialog && !showDetailsDialog) {
+      const timer = setTimeout(() => {
+        refetch();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showDialog, showDetailsDialog, refetch]);
 
-  const ITEMS_PER_PAGE = 8;
-  const totalItems = pagination?.total || 0;
-  const totalPages = pagination?.last_page || 1;
+  const tickets = data?.data || [];
+ 
+
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -55,8 +70,12 @@ const CustomerServicePage: React.FC = () => {
   };
 
   const handleTicketClick = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
+    setDetailsTicket(ticket);
     setShowDetailsDialog(true);
+  };
+
+  const handleStatusChangeFromCard = () => {
+    refetch();
   };
 
   return (
@@ -123,23 +142,13 @@ const CustomerServicePage: React.FC = () => {
               <TicketCard
                 key={ticket.id}
                 ticket={ticket}
+                onStatusChange={handleStatusChangeFromCard}
                 onClick={handleTicketClick}
               />
             ))}
           </div>
 
-          {/* Pagination */}
-          {totalItems > ITEMS_PER_PAGE && (
-            <div className="mt-4">
-              <TicketsPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={ITEMS_PER_PAGE}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
+         
         </>
       )}
 
@@ -152,7 +161,7 @@ const CustomerServicePage: React.FC = () => {
       />
 
       <TicketDetailsDialog
-        ticket={selectedTicket}
+        ticket={detailsTicket}
         open={showDetailsDialog}
         onOpenChange={setShowDetailsDialog}
       />

@@ -69,10 +69,10 @@ export const TicketCard: React.FC<TicketCardProps> = ({
               <User className="h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm truncate">{ticket.user_name}</div>
+              <div className="font-medium text-sm truncate">{ticket.user.name}</div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
                 <Mail className="h-3 w-3 shrink-0" />
-                <span className="truncate">{ticket.user_email}</span>
+                <span className="truncate">{ticket.user.email}</span>
               </div>
             </div>
           </div>

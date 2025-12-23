@@ -16,7 +16,6 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/shared/components/ui/sonner";
 import type { TicketFormData } from "../types/customer-service.types";
 
-
 interface TicketFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,7 +33,6 @@ export const TicketFormDialog: React.FC<TicketFormDialogProps> = ({
     title: "",
     description: "",
     status: "pending",
-    user_email: "",
   });
 
   const handleInputChange = (
@@ -50,7 +48,7 @@ export const TicketFormDialog: React.FC<TicketFormDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.user_email) {
+    if (!formData.title || !formData.description) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -62,7 +60,6 @@ export const TicketFormDialog: React.FC<TicketFormDialogProps> = ({
         title: "",
         description: "",
         status: "pending",
-        user_email: "",
       });
       onOpenChange(false);
     }
@@ -74,7 +71,6 @@ export const TicketFormDialog: React.FC<TicketFormDialogProps> = ({
         title: "",
         description: "",
         status: "pending",
-        user_email: "",
       });
       onOpenChange(false);
     }
