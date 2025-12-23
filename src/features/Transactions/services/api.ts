@@ -5,6 +5,12 @@ import type {
   TransactionDetails,
   UpdateTransactionStatusPayload,
   UpdateTransactionStatusResponse,
+  CreateTransactionPayload,
+  CreateTransactionSuccessResponse,
+  CreateScheduledTransactionPayload,
+  CreateScheduledTransactionResponse,
+  CreateRecurringTransactionPayload,
+  CreateRecurringTransactionResponse,
 } from "../types";
 
 export async function getTransactions(
@@ -48,6 +54,54 @@ export async function updateTransactionStatus(
   const response = await httpClient.patch<UpdateTransactionStatusResponse>(
     `/transactions/${transactionId}/status`,
     { status },
+    {
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export async function createTransaction(
+  payload: CreateTransactionPayload
+): Promise<CreateTransactionSuccessResponse> {
+  const response = await httpClient.post<CreateTransactionSuccessResponse>(
+    "/transactions",
+    payload,
+    {
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export async function createScheduledTransaction(
+  payload: CreateScheduledTransactionPayload
+): Promise<CreateScheduledTransactionResponse> {
+  const response = await httpClient.post<CreateScheduledTransactionResponse>(
+    "/transactions/schedule",
+    payload,
+    {
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export async function createRecurringTransaction(
+  payload: CreateRecurringTransactionPayload
+): Promise<CreateRecurringTransactionResponse> {
+  const response = await httpClient.post<CreateRecurringTransactionResponse>(
+    "/transactions/recurring",
+    payload,
     {
       headers: {
         Accept: "application/json",
