@@ -3,33 +3,52 @@ export interface Ticket {
   id: number;
   title: string;
   description: string;
-  status: "pending" | "resolved" | "in-progress";
+  status: "pending" | "in_progress" | "resolved";
+  status_label: string;
+  status_color: string;
   user_id: number;
-  user_name: string;
-  user_email: string;
   created_at: string;
   updated_at?: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
 
 export interface TicketResponse {
   data: Ticket[];
-  pagination: {
+  links: {
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: {
     current_page: number;
+    from: number;
     last_page: number;
-    total: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      page: number | null;
+      active: boolean;
+    }>;
+    path: string;
     per_page: number;
+    to: number;
+    total: number;
   };
 }
 
 export interface TicketFormData {
   title: string;
   description: string;
-  status: "pending" | "resolved" | "in-progress";
-  user_email: string;
+  status?: "pending" | "in_progress" | "resolved";
 }
 
 export const STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
-  { value: "in-progress", label: "In Progress" },
+  { value: "in_progress", label: "In Progress" },
   { value: "resolved", label: "Resolved" },
 ];
