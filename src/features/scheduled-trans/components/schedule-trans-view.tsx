@@ -76,6 +76,54 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
 
+  const [retryTarget, setRetryTarget] =
+    React.useState<ScheduledTransaction | null>(null);
+
+  // Fetch the scheduled transaction details using the hook here
+  const {
+    data: details,
+    isLoading,
+    isError,
+  } = useScheduledTransactionDetails(retryTarget?.id ?? null);
+
+  const handleConfirmRetry = async () => {
+    if (!retryTarget) return;
+
+    // Check if the details are still loading or there was an error
+    if (isLoading) {
+      // Handle loading state
+      return;
+    }
+
+    if (isError || !details) {
+      // Handle error state or missing details
+      return;
+    }
+
+    // Now that details are fetched, create the command and execute it
+    const command = new RetryScheduledTransactionCommand(retryTarget, details, {
+      fetchScheduledDetails: async (id: number) => details, // Pass the details directly
+      createScheduledTransaction: (payload) =>
+        new Promise((resolve, reject) =>
+          createScheduled(payload, { onSuccess: resolve, onError: reject })
+        ),
+    });
+
+    // Execute the command without passing details, since it's now stored internally
+    await command.execute();
+
+    // Close the retry dialog and reset the retry target
+    setRetryOpen(false);
+    setRetryTarget(null);
+  };
+
+  // Handle retry click to set the retry target
+  const handleRetryClick = (tx: ScheduledTransaction) => {
+    setRetryTarget(tx);
+    setRetryOpen(true);
+  };
+  // Handle retry click to set the retry target
+
   /* ------------------ Filtering ------------------ */
   const filterByReferenceNumber = <T extends { reference_number: string }>(
     items: T[]
@@ -186,7 +234,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
     setEditOpen(true);
   };
   // Use the mutation hook
-  const { mutate: updateTransaction, isLoading } =
+  const { mutate: updateTransaction, isLoading: updateLoading } =
     useUpdateScheduledTransaction();
   const handleEditSubmit = (payload: {
     id: number;
@@ -204,9 +252,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
     updateTransaction(formattedPayload); // Call the mutation with the corrected payload
     setEditOpen(false); // Close the edit dialog after submission
   };
-
-  const [retryTarget, setRetryTarget] =
-    React.useState<ScheduledTransaction | null>(null);
 
   // const { data: retryDetails, isLoading: isRetryLoading } =
   //   useScheduledTransactionDetails(retryTarget?.id ?? null);
@@ -233,30 +278,6 @@ export const ScheduledRecurringTransactionsView: React.FC<
         : {}),
     };
   }
-  const handleConfirmRetry = async () => {
-    if (!retryTarget) return;
-
-    const command = new RetryScheduledTransactionCommand(retryTarget, {
-      fetchScheduledDetails: (id) =>
-        useScheduledTransactionDetails(id)
-          .refetch()
-          .then((r) => r.data),
-      createScheduledTransaction: (payload) =>
-        new Promise((resolve, reject) =>
-          createScheduled(payload, { onSuccess: resolve, onError: reject })
-        ),
-    });
-
-    await command.execute();
-
-    setRetryOpen(false);
-    setRetryTarget(null);
-  };
-
-  const handleRetryClick = (tx: ScheduledTransaction) => {
-    setRetryTarget(tx);
-    setRetryOpen(true);
-  };
 
   const { mutate: terminateRecurring, isLoading: isTerminating } =
     useTerminateRecurringTransaction();
@@ -407,7 +428,7 @@ export const ScheduledRecurringTransactionsView: React.FC<
         transaction={selected}
       />
       <EditScheduledTransactionDialog
-        isLoading={isLoading}
+        isLoading={updateLoading}
         open={editOpen}
         onOpenChange={setEditOpen}
         transaction={selected}

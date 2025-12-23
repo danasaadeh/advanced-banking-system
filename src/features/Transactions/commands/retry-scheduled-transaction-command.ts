@@ -3,7 +3,7 @@ import type { CreateScheduledTransactionPayload } from "@/features/transactions/
 import type { ScheduledTransaction } from "@/features/scheduled-trans/types";
 
 interface RetryScheduledDeps {
-  fetchScheduledDetails: (id: number) => Promise<any>;
+  fetchScheduledDetails: (id: number) => Promise<any>; // Callback to fetch details
   createScheduledTransaction: (
     payload: CreateScheduledTransactionPayload
   ) => Promise<unknown>;
@@ -11,10 +11,16 @@ interface RetryScheduledDeps {
 
 export class RetryScheduledTransactionCommand implements Command {
   private transaction: ScheduledTransaction;
+  private details: any; // Store details internally
   private deps: RetryScheduledDeps;
 
-  constructor(transaction: ScheduledTransaction, deps: RetryScheduledDeps) {
+  constructor(
+    transaction: ScheduledTransaction,
+    details: any,
+    deps: RetryScheduledDeps
+  ) {
     this.transaction = transaction;
+    this.details = details; // Store details
     this.deps = deps;
   }
 
@@ -31,8 +37,7 @@ export class RetryScheduledTransactionCommand implements Command {
   }
 
   async execute() {
-    const details = await this.deps.fetchScheduledDetails(this.transaction.id);
-    const payload = this.mapToCreatePayload(details);
+    const payload = this.mapToCreatePayload(this.details); // Use stored details
     await this.deps.createScheduledTransaction(payload);
   }
 }
