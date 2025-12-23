@@ -12,6 +12,9 @@ import { TicketCard } from "../components/TicketCard";
 import { TicketFormDialog } from "../components/TicketFormDialog";
 import { TicketDetailsDialog } from "../components/TicketDetailsDialog";
 import type { Ticket } from "../types/customer-service.types";
+import { TicketContext } from "../Strategy/strategy-context";
+import { AdminTicketStrategy } from "../Strategy/admin-strategy";
+import { CustomerTicketStrategy } from "../Strategy/customer.strategy";
 
 const CustomerServicePage: React.FC = () => {
   const {
@@ -35,34 +38,38 @@ const CustomerServicePage: React.FC = () => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [detailsTicket, setDetailsTicket] = useState<Ticket | null>(null);
 
-  const { 
-    data, 
-    isLoading: isLoadingTickets, 
+  const {
+    data,
+    isLoading: isLoadingTickets,
     isError,
-    refetch
+    refetch,
   } = useApiQuery({
     key: ["tickets", searchQuery, selectedStatus, currentPage, 8],
-    fetcher: () => customerServiceApiService.getTickets(
-      searchQuery, 
-      selectedStatus, 
-      currentPage, 
-      8
-    ),
+    fetcher: () =>
+      customerServiceApiService.getTickets(
+        searchQuery,
+        selectedStatus,
+        currentPage,
+        8
+      ),
   });
+
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+
+  useEffect(() => {
+    if (data?.data) {
+      setTickets(data.data);
+    }
+  }, [data]);
 
   useEffect(() => {
     if (!showDialog && !showDetailsDialog) {
       const timer = setTimeout(() => {
         refetch();
       }, 500);
-      
       return () => clearTimeout(timer);
     }
   }, [showDialog, showDetailsDialog, refetch]);
-
-  const tickets = data?.data || [];
- 
-
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -74,9 +81,39 @@ const CustomerServicePage: React.FC = () => {
     setShowDetailsDialog(true);
   };
 
-  const handleStatusChangeFromCard = () => {
-    refetch();
+  const handleStatusChangeFromCard = (updatedTicket: Ticket) => {
+    const updatedTickets = tickets.map((ticket) =>
+      ticket.id === updatedTicket.id ? updatedTicket : ticket
+    );
+    setTickets(updatedTickets);
   };
+
+  // قراءة الدور من localStorage
+  let rolesRaw = localStorage.getItem("roles");
+  let userRole = "customer"; 
+  if (rolesRaw) {
+    try {
+      const rolesArray: string[] = JSON.parse(rolesRaw);
+      if (rolesArray.includes("Admin")) {
+        userRole = "admin";
+      }
+    } catch (error) {
+      console.error("Failed to parse roles from localStorage", error);
+    }
+  }
+
+  const userId = Number(localStorage.getItem("user_id"));
+
+  // اختيار الستراتيجية حسب الدور
+  const ticketStrategy =
+    userRole === "admin"
+      ? new AdminTicketStrategy()
+      : new CustomerTicketStrategy();
+
+  const ticketContext = new TicketContext(ticketStrategy);
+
+  // تصفية التيكتات قبل العرض
+  const ticketsToShow = ticketContext.filterTickets(tickets, userId);
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,7 +122,6 @@ const CustomerServicePage: React.FC = () => {
         <div>
           <h1 className="text-xl font-semibold">Customer Service</h1>
         </div>
-
         <Button
           onClick={handleCreateTicket}
           className="flex items-center gap-2"
@@ -106,7 +142,6 @@ const CustomerServicePage: React.FC = () => {
             className="pl-9"
           />
         </div>
-
         <TicketsFilters
           selectedStatus={selectedStatus}
           onStatusChange={(value) => {
@@ -128,7 +163,7 @@ const CustomerServicePage: React.FC = () => {
         <div className="text-center text-red-500 py-8">
           Failed to load tickets. Please try again.
         </div>
-      ) : tickets.length === 0 ? (
+      ) : ticketsToShow.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No tickets found</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -136,20 +171,17 @@ const CustomerServicePage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {tickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                ticket={ticket}
-                onStatusChange={handleStatusChangeFromCard}
-                onClick={handleTicketClick}
-              />
-            ))}
-          </div>
-
-         
-        </>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {ticketsToShow.map((ticket) => (
+            <TicketCard
+              key={ticket.id}
+              ticket={ticket}
+              onStatusChange={() => handleStatusChangeFromCard(ticket)}
+              onClick={handleTicketClick}
+              canEditStatus={ticketContext.canEditStatus(ticket, userRole)}
+            />
+          ))}
+        </div>
       )}
 
       {/* Dialogs */}
@@ -159,7 +191,6 @@ const CustomerServicePage: React.FC = () => {
         onSave={handleSaveTicket}
         isLoading={isLoading}
       />
-
       <TicketDetailsDialog
         ticket={detailsTicket}
         open={showDetailsDialog}
