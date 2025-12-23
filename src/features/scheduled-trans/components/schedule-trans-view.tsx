@@ -30,6 +30,10 @@ import type {
   CreateScheduledTransactionPayload,
   TransactionType,
 } from "@/features/transactions/types";
+import { CancelScheduledTransactionCommand } from "@/features/transactions/commands/cancel-scheduled-transaction-command";
+import { RetryScheduledTransactionCommand } from "@/features/transactions/commands/retry-scheduled-transaction-command";
+import { TerminateRecurringTransactionCommand } from "@/features/transactions/commands/terminate-recurring-transaction-command";
+import { ToggleRecurringTransactionCommand } from "@/features/transactions/commands/toggle-recurring-transaction-command";
 
 export interface ScheduledRecurringTransactionsViewProps {
   scheduledTransactions: ScheduledTransaction[];
@@ -148,13 +152,31 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const { mutate: deleteTransaction, isLoading: isDeleting } =
     useDeleteScheduledTransaction();
 
-  const handleConfirmDelete = () => {
+  // Wrap the mutate function to return a Promise
+  const deleteScheduledTransaction = async (
+    id: number
+  ): Promise<{ message: string }> => {
+    return new Promise((resolve, reject) => {
+      deleteTransaction(id, {
+        onSuccess: (data) => resolve(data), // Resolve with the expected data
+        onError: (error) => reject(error), // Reject with error
+      });
+    });
+  };
+
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
 
-    deleteTransaction(deleteTarget.id);
+    const command = new CancelScheduledTransactionCommand(deleteTarget, {
+      deleteScheduledTransaction, // Pass the wrapped function here
+    });
+
+    await command.execute();
+
     setDeleteOpen(false);
     setDeleteTarget(null);
   };
+
   const handleViewDetails = (tx: ScheduledTransaction) => {
     setSelected(tx); // Set the selected transaction
     setOpen(true); // Open the dialog
@@ -186,8 +208,8 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const [retryTarget, setRetryTarget] =
     React.useState<ScheduledTransaction | null>(null);
 
-  const { data: retryDetails, isLoading: isRetryLoading } =
-    useScheduledTransactionDetails(retryTarget?.id ?? null);
+  // const { data: retryDetails, isLoading: isRetryLoading } =
+  //   useScheduledTransactionDetails(retryTarget?.id ?? null);
 
   const { mutate: createScheduled, isLoading: isRetrying } =
     useCreateScheduledTransaction();
@@ -211,18 +233,24 @@ export const ScheduledRecurringTransactionsView: React.FC<
         : {}),
     };
   }
+  const handleConfirmRetry = async () => {
+    if (!retryTarget) return;
 
-  const handleConfirmRetry = () => {
-    if (!retryDetails) return;
-
-    const payload = mapScheduledToCreatePayload(retryDetails);
-
-    createScheduled(payload, {
-      onSuccess: () => {
-        setRetryOpen(false);
-        setRetryTarget(null);
-      },
+    const command = new RetryScheduledTransactionCommand(retryTarget, {
+      fetchScheduledDetails: (id) =>
+        useScheduledTransactionDetails(id)
+          .refetch()
+          .then((r) => r.data),
+      createScheduledTransaction: (payload) =>
+        new Promise((resolve, reject) =>
+          createScheduled(payload, { onSuccess: resolve, onError: reject })
+        ),
     });
+
+    await command.execute();
+
+    setRetryOpen(false);
+    setRetryTarget(null);
   };
 
   const handleRetryClick = (tx: ScheduledTransaction) => {
@@ -233,16 +261,22 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const { mutate: terminateRecurring, isLoading: isTerminating } =
     useTerminateRecurringTransaction();
 
-  const handleConfirmTerminate = () => {
+  const handleConfirmTerminate = async () => {
     if (!terminateTarget) return;
 
-    terminateRecurring(terminateTarget.id, {
-      onSuccess: () => {
-        setTerminateOpen(false);
-        setTerminateTarget(null);
-      },
+    const command = new TerminateRecurringTransactionCommand(terminateTarget, {
+      terminateRecurring: (id) =>
+        new Promise((resolve, reject) =>
+          terminateRecurring(id, { onSuccess: resolve, onError: reject })
+        ),
     });
+
+    await command.execute();
+
+    setTerminateOpen(false);
+    setTerminateTarget(null);
   };
+
   const navigate = useNavigate();
   const onViewRecurringHistory = (recurrence: RecurringTransaction) => {
     navigate(
@@ -259,21 +293,30 @@ export const ScheduledRecurringTransactionsView: React.FC<
   const { mutate: toggleRecurring, isLoading: isToggling } =
     useToggleRecurringTransaction();
 
-  const handleToggleRecurringActive = (
+  const handleToggleRecurringActive = async (
     recurrence: RecurringTransaction,
     active: boolean
   ) => {
-    toggleRecurring(
-      { id: recurrence.id, isActive: active },
-      {
-        onSuccess: () => {
-          setRecurringData((prev) =>
-            prev.map((r) =>
-              r.id === recurrence.id ? { ...r, is_active: active } : r
-            )
-          );
-        },
-      }
+    const command = new ToggleRecurringTransactionCommand(recurrence, active, {
+      toggleRecurring: ({ id, isActive }) =>
+        new Promise((resolve, reject) =>
+          toggleRecurring(
+            { id, isActive },
+            {
+              onSuccess: resolve,
+              onError: reject,
+            }
+          )
+        ),
+    });
+
+    await command.execute();
+
+    // optimistic UI update
+    setRecurringData((prev) =>
+      prev.map((r) =>
+        r.id === recurrence.id ? { ...r, is_active: active } : r
+      )
     );
   };
 
