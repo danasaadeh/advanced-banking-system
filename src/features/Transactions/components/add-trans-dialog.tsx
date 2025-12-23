@@ -17,6 +17,12 @@ import { Label } from "@/shared/components/ui/label";
 import { Input } from "@/shared/components/ui/input";
 import { Select, SelectItem } from "@/shared/components/ui/select";
 import TransactionForm from "./trans-common-fields";
+import {
+  useCreateRecurringTransaction,
+  useCreateScheduledTransaction,
+  useCreateTransaction,
+} from "../services/mutation";
+import type { AddTransactionFormValues } from "./config";
 
 type TransactionType = "deposit" | "withdrawal" | "transfer";
 
@@ -33,6 +39,63 @@ export const AddTransactionDialog: React.FC<Props> = ({
   const [isRecurring, setIsRecurring] = React.useState(false);
   const [isScheduled, setIsScheduled] = React.useState(false);
 
+  const createTx = useCreateTransaction();
+  const createScheduledTx = useCreateScheduledTransaction();
+  const createRecurringTx = useCreateRecurringTransaction();
+  const isSubmitting =
+    createTx.isPending ||
+    createScheduledTx.isPending ||
+    createRecurringTx.isPending;
+
+  const handleCreate = (values: AddTransactionFormValues) => {
+    if (isRecurring) {
+      createRecurringTx.mutate({
+        type: values.type,
+        amount: values.amount,
+        frequency: values.frequency!,
+        start_date: values.start_date!,
+        end_date: values.end_date,
+        description: values.description,
+        account_id: values.sourceAccountId
+          ? Number(values.sourceAccountId)
+          : undefined,
+        target_account_id: values.targetAccountId
+          ? Number(values.targetAccountId)
+          : undefined,
+      });
+      return;
+    }
+
+    if (isScheduled) {
+      createScheduledTx.mutate({
+        type: values.type,
+        amount: values.amount,
+        scheduled_at: values.scheduled_at!,
+        description: values.description,
+        account_id: values.sourceAccountId
+          ? Number(values.sourceAccountId)
+          : undefined,
+        target_account_id: values.targetAccountId
+          ? Number(values.targetAccountId)
+          : undefined,
+      });
+      return;
+    }
+
+    createTx.mutate({
+      type: values.type,
+      amount: values.amount,
+      currency: values.currency,
+      description: values.description,
+      sourceAccountId: values.sourceAccountId
+        ? Number(values.sourceAccountId)
+        : undefined,
+      targetAccountId: values.targetAccountId
+        ? Number(values.targetAccountId)
+        : undefined,
+    });
+  };
+
   const handleRecurringChange = (v: boolean) => {
     setIsRecurring(v);
     if (v) setIsScheduled(false);
@@ -45,7 +108,8 @@ export const AddTransactionDialog: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      {/* ✅ SCROLLABLE CONTENT */}
+      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center">Add Transaction</DialogTitle>
         </DialogHeader>
@@ -57,36 +121,42 @@ export const AddTransactionDialog: React.FC<Props> = ({
             <TabsTrigger value="transfer">Transfer</TabsTrigger>
           </TabsList>
 
-          {/* Deposit */}
           <TabsContent value="deposit">
             <TransactionForm
+              isSubmitting={isSubmitting}
+              onCancel={() => onOpenChange(false)}
               type="deposit"
               isRecurring={isRecurring}
               isScheduled={isScheduled}
               onRecurringChange={handleRecurringChange}
               onScheduledChange={handleScheduledChange}
+              onSubmit={handleCreate}
             />
           </TabsContent>
 
-          {/* Withdrawal */}
           <TabsContent value="withdrawal">
             <TransactionForm
+              isSubmitting={isSubmitting}
+              onCancel={() => onOpenChange(false)}
               type="withdrawal"
               isRecurring={isRecurring}
               isScheduled={isScheduled}
               onRecurringChange={handleRecurringChange}
               onScheduledChange={handleScheduledChange}
+              onSubmit={handleCreate}
             />
           </TabsContent>
 
-          {/* Transfer */}
           <TabsContent value="transfer">
             <TransactionForm
+              isSubmitting={isSubmitting}
+              onCancel={() => onOpenChange(false)}
               type="transfer"
               isRecurring={isRecurring}
               isScheduled={isScheduled}
               onRecurringChange={handleRecurringChange}
               onScheduledChange={handleScheduledChange}
+              onSubmit={handleCreate}
             />
           </TabsContent>
         </Tabs>
