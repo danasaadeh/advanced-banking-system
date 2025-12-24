@@ -15,11 +15,6 @@ import type { User } from "../types/user.types";
 
 interface UsersTableProps {
   users: User[];
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-  onPageChange: (page: number) => void;
   onViewDetails: (user: User) => void;
   onActivate: (user: User) => void;
   onDeactivate: (user: User) => void;

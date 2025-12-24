@@ -1,29 +1,32 @@
 import type React from "react";
+
 export interface StatisticsOverview {
-  total_complaints: number;
-  pending_complaints: number;
-  resolved_complaints: number;
-  new_complaints: number;
+  total_accounts: number;
+  active_accounts: number;
+  total_transactions: number;
+  total_balance: number;
+  pending_transactions: number;
+  total_customers: number;
 }
 
-export interface MonthlyComplaint {
+export interface MonthlyTransaction {
   month: number;
   month_name: string;
   count: number;
+  amount: number;
 }
 
-export interface GovernmentUnitDistribution {
-  government_unit_id: number;
-  government_unit_name: string;
+export interface AccountTypeDistribution {
+  account_type: string;
   count: number;
   percentage: number;
-  [key: string]: string | number; // ← REQUIRED FOR RECHARTS
+  [key: string]: string | number;
 }
 
 export interface StatisticsData {
   overview: StatisticsOverview;
-  line_chart: MonthlyComplaint[];
-  pie_chart: GovernmentUnitDistribution[];
+  line_chart: MonthlyTransaction[];
+  pie_chart: AccountTypeDistribution[];
 }
 
 export interface StatisticsCardProps {

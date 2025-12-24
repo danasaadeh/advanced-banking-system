@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
@@ -40,6 +39,7 @@ const UsersListPage: React.FC = () => {
     getActionDescription,
     isLoading,
   } = useUserActions();
+
   const { 
     data, 
     isLoading: isLoadingUsers, 
@@ -49,6 +49,7 @@ const UsersListPage: React.FC = () => {
     key: ["users", searchQuery, selectedRole, currentPage, 10],
     fetcher: () => userApiService.getUsers(searchQuery, selectedRole, currentPage, 10),
   });
+
   useEffect(() => {
     if (!showDialog) {
       const timer = setTimeout(() => {
@@ -62,16 +63,23 @@ const UsersListPage: React.FC = () => {
   const users = data?.data || [];
   const pagination = data?.pagination;
 
+  const totalItems = pagination?.total || 0;
+  const totalPages = pagination?.last_page || 1;
+  const currentPageFromApi = pagination?.current_page || 1;
+  const itemsPerPage = pagination?.per_page || 10;
+
+  useEffect(() => {
+    if (currentPageFromApi !== currentPage) {
+      setCurrentPage(currentPageFromApi);
+    }
+  }, [currentPageFromApi, currentPage, setCurrentPage]);
+
   const handleEditFromDetails = (user: any) => {
     setShowDialog(false);
     setTimeout(() => {
       handleEditUser(user);
     }, 100);
   };
-
-  const ITEMS_PER_PAGE = 10;
-  const totalItems = pagination?.total || 0;
-  const totalPages = pagination?.last_page || 1;
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -139,24 +147,19 @@ const UsersListPage: React.FC = () => {
         <>
           <UsersTable
             users={users}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
+      
             onViewDetails={handleViewDetails}
             onActivate={handleActivate}
             onDeactivate={handleDeactivate}
           />
           
-          {/* Pagination */}
-          {totalItems > ITEMS_PER_PAGE && (
+          {totalItems > 0 && (
             <div className="mt-4">
               <UsersPagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={totalItems}
-                itemsPerPage={ITEMS_PER_PAGE}
+                itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
               />
             </div>

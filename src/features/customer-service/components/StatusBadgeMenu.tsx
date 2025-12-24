@@ -73,17 +73,18 @@ export const StatusBadgeMenu: React.FC<StatusBadgeMenuProps> = ({
     if (newStatus === ticket.status || isResolved) return;
 
     try {
-      const updatedTicket = await updateStatusMutation.mutateAsync({
+      const response = await updateStatusMutation.mutateAsync({
         ticketId: ticket.id,
         status: newStatus,
       });
 
-      if (onStatusChange) {
-        onStatusChange(updatedTicket);
-      }
+      const updatedTicket = response.data; // ✅ FIX
 
-      toast.success(`Status changed to ${newStatus}`);
-    } catch (error) {
+      onStatusChange?.(updatedTicket); // ✅ FIX
+
+      toast.success(response.message || "Status updated");
+      setIsOpen(false);
+    } catch {
       toast.error("Failed to update status");
     }
   };

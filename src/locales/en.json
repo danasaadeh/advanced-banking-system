@@ -85,7 +85,6 @@
   "deletePermanently": "Delete Permanently",
   "cancel": "Cancel",
 
-  "statisticsDescription": "Overview of complaint statistics and trends",
   "totalComplaints": "Total Complaints",
   "pendingComplaints": "Pending Complaints",
   "resolvedComplaints": "Resolved Complaints",
@@ -95,5 +94,23 @@
   "complaintsCount": "Complaints",
   "loadingStatistics": "Loading statistics...",
   "failedToLoadStatistics": "Failed to load statistics. Please try again.",
-  "error": "Error"
+  "error": "Error",
+
+  "bankStatistics": "Bank Statistics",
+  "statisticsDescription": "Overview of banking operations and performance metrics",
+  "totalAccounts": "Total Accounts",
+  "activeAccounts": "Active Accounts",
+  "totalCustomers": "Total Customers",
+  "totalBalance": "Total Balance",
+  "totalTransactions": "Total Transactions",
+  "pendingTransactions": "Pending",
+  "monthlyTransactions": "Monthly Transactions",
+  "accountsByType": "Accounts by Type",
+  "transactionsCount": "Transactions",
+  "accountsCount": "Accounts",
+  "quickSummary": "Quick Summary",
+  "activeRate": "Active Rate",
+  "avgBalancePerAccount": "Avg Balance/Account",
+  "transactionsPerDay": "Transactions/Day",
+  "avgAccountsPerCustomer": "Avg Accounts/Customer"
 }

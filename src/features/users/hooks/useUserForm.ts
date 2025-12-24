@@ -21,7 +21,7 @@ export const useUserForm = ({ user, mode }: UseUserFormProps) => {
     status: "active",
   });
 
-  // Initialize form when user changes or mode changes
+
   useEffect(() => {
     if (mode === "edit" && user) {
       setFormData({

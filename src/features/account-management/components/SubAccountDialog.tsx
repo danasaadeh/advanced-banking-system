@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +12,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import {
+import { PlusCircle, ChevronRight, Loader2, Users } from "lucide-react";
 
-  PlusCircle,
-  Search,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
 import type {
   CreateAccountPayload,
   Account,
@@ -49,37 +44,18 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
   accountTypes,
   loading,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-
   const payload: CreateAccountPayload = {
     ...value,
     parent_account_id: parentAccount.id,
     currency: parentAccount.currency,
   };
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [users, searchTerm]);
-
-  const toggleUser = (userId: number) => {
-    const currentIds = [...payload.user_ids];
-    const index = currentIds.indexOf(userId);
-    if (index > -1) {
-      currentIds.splice(index, 1);
-    } else {
-      currentIds.push(userId);
-    }
-    onChange({ ...payload, user_ids: currentIds });
-  };
+  const owner = users.find((u) => u.id === payload.owner_user_id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-xl w-full p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-background">
-        {/* FIXED HEADER - Reduced padding */}
+        {/* Header */}
         <div className="bg-black dark:bg-zinc-800 p-5 text-white">
           <DialogHeader>
             <div className="flex items-center gap-2">
@@ -88,6 +64,7 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
                 Create Sub-Account
               </DialogTitle>
             </div>
+
             <div className="flex items-center gap-2 mt-2 py-1 px-3 bg-white/5 rounded-lg w-fit border border-white/10">
               <span className="text-[9px] uppercase text-zinc-400 font-bold">
                 Parent
@@ -103,7 +80,7 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
           </DialogHeader>
         </div>
 
-        {/* SCROLLABLE CONTENT - Height restricted */}
+        {/* Content */}
         <ScrollArea className="max-h-[50vh] px-6 py-4">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -149,6 +126,7 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
               </div>
             </div>
 
+            {/* Account Owner */}
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase text-muted-foreground">
                 Account Owner
@@ -160,6 +138,7 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
                   onChange({
                     ...payload,
                     owner_user_id: Number(e.target.value),
+                    user_ids: e.target.value ? [Number(e.target.value)] : [],
                   })
                 }
               >
@@ -172,66 +151,36 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
               </select>
             </div>
 
+            {/* Assigned User (Owner Only) */}
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                Team Members ({payload.user_ids.length})
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                <Users size={12} /> Assigned User
               </Label>
-              <div className="relative">
-                <Search
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  size={12}
-                />
-                <Input
-                  placeholder="Search team..."
-                  className="h-8 pl-8 text-[11px] bg-muted/30 border-none rounded-lg"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
 
-              <div className="border border-border/40 rounded-xl overflow-hidden">
-                <div className="max-h-[140px] overflow-y-auto p-1 space-y-0.5">
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      onClick={() => toggleUser(user.id)}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-                        payload.user_ids.includes(user.id)
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      <Checkbox
-                        checked={payload.user_ids.includes(user.id)}
-                        className={
-                          payload.user_ids.includes(user.id)
-                            ? "border-white"
-                            : "h-3.5 w-3.5"
-                        }
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-medium leading-none">
-                          {user.name}
-                        </span>
-                        <span
-                          className={`text-[10px] mt-0.5 ${
-                            payload.user_ids.includes(user.id)
-                              ? "text-white/70"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {user.email}
-                        </span>
-                      </div>
+              <div className="border rounded-xl bg-muted/10 p-2">
+                {owner ? (
+                  <div className="flex items-center gap-2.5 p-2 rounded-md bg-primary/10 border border-primary/20">
+                    <Checkbox checked disabled className="h-3.5 w-3.5" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium leading-tight">
+                        {owner.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {owner.email}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="p-3 text-xs text-muted-foreground text-center">
+                    Select an account owner to assign
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </ScrollArea>
 
-        {/* FIXED FOOTER - Smaller height */}
+        {/* Footer */}
         <div className="p-4 bg-background border-t flex gap-3">
           <Button
             variant="ghost"
@@ -242,7 +191,12 @@ const SubAccountDialog: React.FC<SubAccountDialogProps> = ({
           </Button>
           <Button
             className="flex-[2] rounded-xl h-9 text-xs font-bold"
-            onClick={() => onConfirm(payload)}
+            onClick={() =>
+              onConfirm({
+                ...payload,
+                user_ids: payload.owner_user_id ? [payload.owner_user_id] : [],
+              })
+            }
             disabled={loading}
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}

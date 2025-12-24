@@ -14,27 +14,26 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import type { GovernmentUnitDistribution } from "../types/index";
+import type { AccountTypeDistribution } from "../types";
 import { useTranslation } from "react-i18next";
 
-interface ComplaintsPieChartProps {
-  data: GovernmentUnitDistribution[];
+interface AccountDistributionChartProps {
+  data: AccountTypeDistribution[];
 }
 
-// Generate colors with primary green shades
+
 const COLORS = [
-  "hsl(179, 61%, 20%)", // Dark green
-  "hsl(179, 61%, 30%)", // Medium dark green
-  "hsl(179, 61%, 40%)", // Medium green
-  "hsl(179, 61%, 50%)", // Light green
-  "hsl(40, 37%, 60%)", // Gold accent
+  "hsl(0, 0%, 20%)",    
+  "hsl(0, 0%, 35%)",    
+  "hsl(0, 0%, 50%)",   
+  "hsl(0, 0%, 65%)",    
+  "hsl(0, 0%, 80%)",    
 ];
 
-export const ComplaintsPieChart = ({ data }: ComplaintsPieChartProps) => {
+export const AccountDistributionChart = ({ data }: AccountDistributionChartProps) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
 
-  // Custom label to show percentage
   const renderCustomLabel = ({
     cx,
     cy,
@@ -48,7 +47,7 @@ export const ComplaintsPieChart = ({ data }: ComplaintsPieChartProps) => {
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    if (percent < 0.05) return null; // Don't show label for small slices
+    if (percent < 0.05) return null;
 
     return (
       <text
@@ -64,18 +63,18 @@ export const ComplaintsPieChart = ({ data }: ComplaintsPieChartProps) => {
     );
   };
 
-  // Custom tooltip
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const item = payload[0].payload;
       return (
         <div className="bg-card border border-border rounded-lg shadow-lg p-3">
           <p className="text-sm font-semibold text-foreground mb-1">
-            {payload[0].payload.government_unit_name}
+            {item?.account_type || "Unknown"}
           </p>
           <p className="text-sm text-primary">
-            {t("complaintsCount")}: {payload[0].payload.count}
+            {t("accountsCount")}: {item?.count || 0}
           </p>
-          <p className="text-sm text-gold">{payload[0].payload.percentage}%</p>
+          <p className="text-sm text-primary">{item?.percentage || 0}%</p>
         </div>
       );
     }
@@ -85,7 +84,7 @@ export const ComplaintsPieChart = ({ data }: ComplaintsPieChartProps) => {
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <CardTitle className="text-gold">{t("complaintsByUnit")}</CardTitle>
+        <CardTitle className="text-primary">{t("accountsByType")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
@@ -120,7 +119,10 @@ export const ComplaintsPieChart = ({ data }: ComplaintsPieChartProps) => {
                 direction: isRTL ? "rtl" : "ltr",
               }}
               formatter={(value, entry: any) => {
-                return `${entry.payload.government_unit_name} (${entry.payload.count})`;
+                if (!entry?.payload) {
+                  return `${value || "Unknown"} (0)`;
+                }
+                return `${entry.payload.account_type || "Unknown"} (${entry.payload.count || 0})`;
               }}
             />
           </PieChart>
