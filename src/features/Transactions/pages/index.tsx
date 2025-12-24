@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Plus, Search } from "lucide-react";
@@ -24,8 +24,10 @@ import type {
 } from "../types";
 import { RejectTransactionCommand } from "../commands/reject-transaction-command";
 import { ApproveTransactionCommand } from "../commands/approve-transaction-command";
+import { useSearchParams } from "react-router-dom";
 
 const TransactionsPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   /* ---------------- SEARCH ---------------- */
   const [search, setSearch] = useState("");
 
@@ -41,6 +43,15 @@ const TransactionsPage: React.FC = () => {
   /* ---------------- PAGINATION ---------------- */
   const [currentPage, setCurrentPage] = useState(1);
 
+  /* ---------------- Sync URL params ---------------- */
+  useEffect(() => {
+    const searchParam = searchParams.get("search");
+    const statusParam = searchParams.get("status");
+
+    if (searchParam) setSearch(searchParam);
+    if (statusParam) setStatus(statusParam as TransactionStatus);
+    setCurrentPage(1); // reset page
+  }, [searchParams]);
   /* ---------------- DIALOG STATES ---------------- */
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsTransaction, setDetailsTransaction] = useState<any>(null);
@@ -139,7 +150,6 @@ const TransactionsPage: React.FC = () => {
           Add Transaction
         </Button>
       </div>
-
       {/* ---------------- SEARCH + FILTERS ---------------- */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
         <div className="relative w-full lg:max-w-sm">
@@ -183,7 +193,6 @@ const TransactionsPage: React.FC = () => {
           }}
         />
       </div>
-
       {/* ---------------- TABLE ---------------- */}
       <TransactionsTable
         userRole={userRole}
@@ -194,7 +203,6 @@ const TransactionsPage: React.FC = () => {
         onReject={handleReject}
         onViewDetails={handleViewDetails}
       />
-
       {/* ---------------- PAGINATION ---------------- */}
       {meta && (
         <TransactionsPagination
@@ -205,17 +213,14 @@ const TransactionsPage: React.FC = () => {
           setCurrentPage={setCurrentPage}
         />
       )}
-
       {/* ---------------- DETAILS DIALOG ---------------- */}
       <TransactionDetailsDialog
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
         transactionId={detailsTransactionId}
       />
-
       {/* ---------------- ADD TRANSACTION DIALOG ---------------- */}
       <AddTransactionDialog open={addOpen} onOpenChange={setAddOpen} />
-
       {selectedTransaction && confirmAction && (
         <ConfirmDialog
           open={confirmOpen}

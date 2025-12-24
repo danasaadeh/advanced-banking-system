@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
-import type { StatisticsCardProps } from "../types/index";
+import type { StatisticsCardProps } from "../types";
 
 export const StatisticsCard = ({
   title,
@@ -15,15 +15,22 @@ export const StatisticsCard = ({
   icon,
   trend,
 }: StatisticsCardProps) => {
+  const formatValue = (val: number) => {
+    if (title.includes("Balance")) {
+      return `$${val.toLocaleString()}`;
+    }
+    return val.toLocaleString();
+  };
+
   return (
-    <Card className="border-primary/20 hover:border-gold/50 transition-all duration-300 hover:shadow-lg">
+    <Card className="border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gold">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-primary">{title}</CardTitle>
         <div className="text-primary/60">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">
-          {value}
+        <div className="text-3xl font-bold bg-linear-to-br from-primary to-primary/60 bg-clip-text text-transparent">
+          {formatValue(value)}
         </div>
         {trend && (
           <div className="flex items-center gap-1 mt-2">

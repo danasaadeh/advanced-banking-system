@@ -1,7 +1,4 @@
-// features/users/components/UsersPagination.tsx
 import React from "react";
-import { Button } from "@/shared/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface UsersPaginationProps {
   currentPage: number;
@@ -18,66 +15,56 @@ export const UsersPagination: React.FC<UsersPaginationProps> = ({
   itemsPerPage,
   onPageChange,
 }) => {
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  const pageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      let start = Math.max(1, currentPage - 2);
-      let end = Math.min(totalPages, start + maxVisible - 1);
-
-      if (end - start < maxVisible - 1) {
-        start = Math.max(1, end - maxVisible + 1);
-      }
-
-      for (let i = start; i <= end; i++) pages.push(i);
-    }
-
-    return pages;
-  };
+  const safeTotal = totalItems || 0;
+  const safePage = currentPage || 1;
+  
+  const startIndex = safeTotal === 0 ? 0 : (safePage - 1) * itemsPerPage + 1;
+  const endIndex = safeTotal === 0 ? 0 : Math.min(safePage * itemsPerPage, safeTotal);
+  
+  const paginationButtonBase = "min-w-[70px] px-3 py-1 rounded flex items-center justify-center bg-primary text-primary-foreground border border-border hover:opacity-90 disabled:opacity-40";
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 border-t border-border">
       <div className="text-sm text-muted-foreground">
-        Showing {startItem} to {endItem} of {totalItems} users
+        {safeTotal === 0
+          ? "No users found"
+          : `Showing ${startIndex} to ${endIndex} of ${safeTotal} users`}
       </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="h-8 w-8 p-0"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
 
-        {pageNumbers().map((page) => (
-          <Button
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <button
+          onClick={() => onPageChange(Math.max(1, safePage - 1))}
+          disabled={safePage === 1}
+          className={paginationButtonBase}
+        >
+          Previous
+        </button>
+
+        {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((page) => (
+          <button
             key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
             onClick={() => onPageChange(page)}
-            className="h-8 w-8 p-0"
+            className={`
+              min-w-10 px-3 py-1 rounded
+              flex items-center justify-center
+              border
+              ${safePage === page
+                ? "bg-primary text-primary-foreground"
+                : "bg-background text-foreground hover:bg-muted"
+              }
+            `}
           >
             {page}
-          </Button>
+          </button>
         ))}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="h-8 w-8 p-0"
+        <button
+          onClick={() => onPageChange(Math.min(totalPages || 1, safePage + 1))}
+          disabled={safePage === totalPages}
+          className={paginationButtonBase}
         >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+          Next
+        </button>
       </div>
     </div>
   );
