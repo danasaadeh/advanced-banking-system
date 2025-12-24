@@ -81,12 +81,14 @@ const CustomerServicePage: React.FC = () => {
     setShowDetailsDialog(true);
   };
 
-  const handleStatusChangeFromCard = (updatedTicket: Ticket) => {
-    const updatedTickets = tickets.map((ticket) =>
+const handleStatusChangeFromCard = (updatedTicket: Ticket) => {
+  setTickets((prev) =>
+    prev.map((ticket) =>
       ticket.id === updatedTicket.id ? updatedTicket : ticket
-    );
-    setTickets(updatedTickets);
-  };
+    )
+  );
+};
+
 
   // قراءة الدور من localStorage
   let rolesRaw = localStorage.getItem("roles");
