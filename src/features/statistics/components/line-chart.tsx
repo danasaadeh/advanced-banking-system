@@ -16,17 +16,16 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { MonthlyComplaint } from "../types/index";
+import type { MonthlyTransaction } from "../types";
 import { useTranslation } from "react-i18next";
 
-interface ComplaintsLineChartProps {
-  data: MonthlyComplaint[];
+interface TransactionsLineChartProps {
+  data: MonthlyTransaction[];
 }
 
-export const ComplaintsLineChart = ({ data }: ComplaintsLineChartProps) => {
+export const TransactionsLineChart = ({ data }: TransactionsLineChartProps) => {
   const { t } = useTranslation();
 
-  // Custom tooltip for better UI
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -35,7 +34,10 @@ export const ComplaintsLineChart = ({ data }: ComplaintsLineChartProps) => {
             {payload[0].payload.month_name}
           </p>
           <p className="text-sm text-primary font-medium">
-            {t("complaintsCount")}: {payload[0].value}
+            {t("transactionsCount")}: {payload[0].value}
+          </p>
+          <p className="text-sm text-green-500 font-medium">
+            Amount: ${payload[0].payload.amount.toLocaleString()}
           </p>
         </div>
       );
@@ -46,8 +48,8 @@ export const ComplaintsLineChart = ({ data }: ComplaintsLineChartProps) => {
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <CardTitle className="text-gold">
-          {t("monthlyComplaintsFlow")}
+        <CardTitle className="text-primary">
+          {t("monthlyTransactions")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -81,9 +83,9 @@ export const ComplaintsLineChart = ({ data }: ComplaintsLineChartProps) => {
               dataKey="count"
               stroke="hsl(var(--primary))"
               strokeWidth={3}
-              dot={{ fill: "hsl(var(--gold))", strokeWidth: 2, r: 5 }}
-              activeDot={{ r: 7, fill: "hsl(var(--gold))" }}
-              name={t("complaintsCount")}
+              dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 5 }}
+              activeDot={{ r: 7, fill: "hsl(var(--primary))" }}
+              name={t("transactionsCount")}
             />
           </LineChart>
         </ResponsiveContainer>

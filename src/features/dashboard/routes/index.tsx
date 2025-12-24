@@ -11,7 +11,8 @@ import OverviewPage from "../pages/dashboard";
 
 import CustomerServiceRoutes from "@/features/customer-service/routes/CustomerServiceRoutes";
 import { ScheduledRecurringTransactionsPage } from "@/features/scheduled-trans/pages";
-import StatisticsPage from "../pages/statistics";
+import { StatisticsPage } from "@/features/statistics/pages";
+
 
 const DashboardPage = lazy(() => import("../pages/dashboard"));
 
